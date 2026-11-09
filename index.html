@@ -429,6 +429,8 @@ html.mobile .fgrid2,html.mobile .aline{grid-template-columns:minmax(0,1fr)}
 .sync{font-size:11px;color:#9FD8B9;border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:1px 8px;white-space:nowrap}
 .sync.bad{color:#fff;background:var(--bad);border-color:var(--bad)}
 .devbar.prod{display:none}
+.pwb{font:inherit;font-size:11px;color:#C9D3E6;background:none;border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:1px 8px;cursor:pointer}
+.pwb:hover{color:#fff;border-color:rgba(255,255,255,.4)}
 </style></head><body>
 <div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.0.0</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
 <div id="app"></div><script>
@@ -690,7 +692,7 @@ function cloudRealtime(){ if(_rt) SB.removeChannel(_rt);
 /* 로그인 · 로그아웃 */
 async function cloudLogin(id,pw,set){
   const {error}=await SB.auth.signInWithPassword({email:loginEmail(id),password:pw});
-  if(error){ if(/confirm/i.test(error.message)) return {msg:'이메일 인증이 아직 안 됐습니다. 회사 메일함의 인증 메일을 눌러 주세요.',type:'info'}; return {fail:true} }
+  if(error){ if(/confirm/i.test(error.message)) return {msg:MAIL?'이메일 인증이 아직 안 됐습니다. 메일함의 인증 메일을 눌러 주세요.':'계정 확인이 안 된 상태입니다. 관리자에게 Supabase 설정(Confirm email 끄기)을 확인해 달라고 요청하세요.',type:'info'}; return {fail:true} }
   try{ await cloudLoad() }catch(e){ await SB.auth.signOut(); return {msg:'서버에서 데이터를 불러오지 못했습니다: '+e.message} }
   const u=T('user').find(x=>x.id===id);
   if(!u||!u.on){ const sr=T('signup').filter(x=>x.uid===id).pop(); await SB.auth.signOut(); DB=emptyDB(); SNAP.clear();
@@ -701,26 +703,62 @@ async function cloudLogin(id,pw,set){
   return {u} }
 async function cloudLogout(){ clearTimeout(_saveT); try{ if(_rt) SB.removeChannel(_rt); _rt=null; await cloudFlush() }catch(e){} await SB.auth.signOut(); DB=emptyDB(); SNAP.clear() }
 
+/* 메일 사용 여부: config.js 에 mail:true 를 넣으면 인증 · 재설정 메일 방식, 기본은 메일 없이 운영 */
+const MAIL=!!CFG.mail;
+const PW_RULE='10자 이상, 영문 · 숫자 · 특수문자를 모두 넣으세요.';
+const pwOk=p=>p.length>=10&&/[A-Za-z]/.test(p)&&/\d/.test(p)&&/[^A-Za-z0-9]/.test(p);
+
 /* 가입 신청 (로그인 전) */
 async function cloudSignup(r,pw){
-  const {error}=await SB.auth.signUp({email:loginEmail(r.uid),password:pw,options:{emailRedirectTo:location.origin+location.pathname}});
-  if(error) return /registered|already/i.test(error.message)?'이미 가입한 이메일입니다. 로그인하거나 비밀번호 찾기를 이용하세요.':'가입 신청 실패: '+error.message;
+  const {data,error}=await SB.auth.signUp({email:loginEmail(r.uid),password:pw,options:MAIL?{emailRedirectTo:location.origin+location.pathname}:{}});
+  if(error) return /registered|already/i.test(error.message)?'이미 가입한 아이디입니다. 로그인하거나, 비밀번호를 잊었으면 인사팀에 초기화를 요청하세요.':'가입 신청 실패: '+error.message;
   const {pw:_,...d}=r; const {error:e2}=await SB.from('ayon_records').insert({tbl:'signup',id:r.id,data:d});
+  if(data?.session) await SB.auth.signOut();   // 메일 인증을 끈 경우 바로 세션이 생기므로 승인 전에는 닫아 둠
   if(e2) return '가입 신청 저장 실패: '+e2.message; return null }
+const signupDoneMsg=id=>MAIL?`가입 신청을 보냈습니다. ${loginEmail(id)} 로 온 인증 메일을 누른 뒤, 인사팀 승인이 나면 로그인할 수 있습니다.`:'가입 신청을 보냈습니다. 인사팀 승인이 나면 같은 아이디와 비밀번호로 로그인할 수 있습니다.';
 
-/* 비밀번호 재설정 메일 · 새 비밀번호 */
+/* 비밀번호: 관리자 · 인사의 임시 비밀번호 초기화 (서버 함수 ayon_set_password) */
+const tempPw=()=>'Ayon-'+String(Math.floor(1000+Math.random()*9000))+'!'+'abcdefghjkmnpqrstuvwxyz'[Math.floor(Math.random()*23)];
+function openPwReset(u){
+  const t=tempPw();
+  modal(`<h2>비밀번호 초기화</h2><p class="pmeta" style="font-size:13px">${esc(empName(u.emp)||u.id)} (${esc(u.id)}) 의 비밀번호를 임시 비밀번호로 바꿉니다. 본인에게 직접(대면 · 팀즈 개인 메시지) 알려 주세요. 첫 로그인 때 새 비밀번호로 바꾸게 됩니다.</p>
+    <label for="tp">임시 비밀번호 (8자 이상)<input id="tp" value="${t}" required minlength="8" autocomplete="off"></label><div class="msg err" id="tpm"></div>
+    <div class="actions"><button type="button" class="btn" data-x>취소</button><button class="btn pri">초기화</button></div>`,(f,d)=>{
+    f.onsubmit=async e=>{e.preventDefault(); const v=$('#tp',f).value.trim(), m=$('#tpm',f); if(v.length<8) return m.textContent='8자 이상이어야 합니다.';
+      const b=$('button.pri',f); b.disabled=true; const {error}=await SB.rpc('ayon_set_password',{target:u.id,newpw:v}); b.disabled=false;
+      if(error) return m.textContent=error.message;
+      u.pwTemp=true; audit('user',u.id,'비밀번호 초기화','임시 비밀번호 발급'); save(); d.remove(); renderView();
+      modal(`<h2>초기화 완료</h2><p style="font-size:14px">아이디 <b>${esc(u.id)}</b><br>임시 비밀번호 <b class="num" style="font-size:18px">${esc(v)}</b></p><p class="pmeta">이 창을 닫으면 다시 볼 수 없습니다.</p><div class="actions"><button type="button" class="btn pri" data-x>확인</button></div>`,()=>{}) } }) }
+
+/* 비밀번호 변경: 본인 (임시 비밀번호면 첫 로그인 때 반드시) */
+function openPwChange(force){
+  modal(`<h2>비밀번호 변경</h2>${force?'<p class="msg info" style="display:block">임시 비밀번호로 로그인했습니다. 새 비밀번호로 바꿔야 계속 쓸 수 있습니다.</p>':''}
+    <label for="cp0">지금 비밀번호<input id="cp0" type="password" required autocomplete="current-password"></label>
+    <label for="cp1">새 비밀번호 <span class="faint">${PW_RULE}</span><input id="cp1" type="password" required autocomplete="new-password"></label>
+    <label for="cp2">새 비밀번호 확인<input id="cp2" type="password" required autocomplete="new-password"></label><div class="msg err" id="cpm"></div>
+    <div class="actions">${force?'<button type="button" class="btn" id="cpout">로그아웃</button>':'<button type="button" class="btn" data-x>취소</button>'}<button class="btn pri">변경</button></div>`,(f,d)=>{
+    if(force){ d.onclick=null; $('#cpout',f).onclick=()=>{d.remove();logout()} }
+    f.onsubmit=async e=>{e.preventDefault(); const p0=$('#cp0',f).value,p=$('#cp1',f).value,m=$('#cpm',f);
+      if(!pwOk(p)) return m.textContent=PW_RULE; if(p!==$('#cp2',f).value) return m.textContent='새 비밀번호 확인이 다릅니다.'; if(p===p0) return m.textContent='지금과 다른 비밀번호를 넣으세요.';
+      const b=$('button.pri',f); b.disabled=true;
+      const {error:e1}=await SB.auth.signInWithPassword({email:loginEmail(S.user.id),password:p0}); if(e1){b.disabled=false; return m.textContent='지금 비밀번호가 맞지 않습니다.'}
+      const {error}=await SB.auth.updateUser({password:p}); b.disabled=false; if(error) return m.textContent=error.message;
+      const u=T('user').find(x=>x.id===S.user.id); if(u&&u.pwTemp){ u.pwTemp=false } audit('user',S.user.id,'비밀번호 변경',''); save(); d.remove(); toast('비밀번호를 바꿨습니다.') } }) }
+document.addEventListener('click',e=>{ if(e.target.closest('#chpw')) openPwChange(false) });
+
+/* (mail:true 일 때만) 재설정 메일 */
 async function cloudResetMail(id){ const {error}=await SB.auth.resetPasswordForEmail(loginEmail(id),{redirectTo:location.origin+location.pathname}); return error?error.message:null }
-function cloudRecoveryWatch(){ SB.auth.onAuthStateChange((ev)=>{ if(ev!=='PASSWORD_RECOVERY') return;
-  modal(`<h2>새 비밀번호 설정</h2><p class="pmeta">10자 이상, 영문 · 숫자 · 특수문자를 모두 넣으세요.</p><label for="np1">새 비밀번호<input id="np1" type="password" required></label><label for="np2">새 비밀번호 확인<input id="np2" type="password" required></label><div class="msg err" id="npm"></div><div class="actions"><button class="btn pri">변경</button></div>`,(f,d)=>{
+function cloudRecoveryWatch(){ if(!MAIL) return; SB.auth.onAuthStateChange((ev)=>{ if(ev!=='PASSWORD_RECOVERY') return;
+  modal(`<h2>새 비밀번호 설정</h2><p class="pmeta">${PW_RULE}</p><label for="np1">새 비밀번호<input id="np1" type="password" required></label><label for="np2">새 비밀번호 확인<input id="np2" type="password" required></label><div class="msg err" id="npm"></div><div class="actions"><button class="btn pri">변경</button></div>`,(f,d)=>{
     f.onsubmit=async e=>{e.preventDefault(); const p=$('#np1',f).value, m=$('#npm',f);
-      if(p.length<10||!/[A-Za-z]/.test(p)||!/\d/.test(p)||!/[^A-Za-z0-9]/.test(p)) return m.textContent='10자 이상, 영문 · 숫자 · 특수문자를 모두 넣어야 합니다.';
+      if(!pwOk(p)) return m.textContent=PW_RULE;
       if(p!==$('#np2',f).value) return m.textContent='확인 비밀번호가 다릅니다.';
       const {error}=await SB.auth.updateUser({password:p}); if(error) return m.textContent=error.message;
       await SB.auth.signOut(); d.remove(); history.replaceState(null,'',location.pathname); renderLogin({type:'info',text:'비밀번호를 바꿨습니다. 새 비밀번호로 로그인하세요.'}) }}) }) }
 
 /* 첫 화면: 저장된 로그인이 살아 있으면 바로 들어감 */
 async function cloudBoot(){ DB=emptyDB(); cloudRecoveryWatch();
-  if(/type=recovery/.test(location.hash)){ renderLogin(); return }
+  if(MAIL&&/type=recovery/.test(location.hash)){ renderLogin(); return }
   const {data}=await SB.auth.getSession(); const em=data?.session?.user?.email;
   if(em){ const id=em.toLowerCase().endsWith('@gcway.com')?em.split('@')[0].toLowerCase():em.toLowerCase();
     try{ await cloudLoad(); const u=T('user').find(x=>x.id===id&&x.on); if(u){ enterApp(u); return } }catch(e){ console.error(e) } await SB.auth.signOut(); DB=emptyDB() }
@@ -828,7 +866,7 @@ function renderApp(){ const u=S.user, m=mode(); document.documentElement.classLi
   const e=meEmp(); const roles=myRoles().filter(r=>r.id!=='R-BASE').map(r=>r.name).join(' · ')||'기본 사용자';
   $('#app').innerHTML=`<header class="top gut"><div class="brand">${LOGO}<span class="wm-s">ay<b>·</b>on <small>에이온</small></span></div>
     <div class="seg" role="group" aria-label="화면 전환"><button data-m="pc" class="${m==='pc'?'on':''}" aria-pressed="${m==='pc'}">PC</button><button data-m="mobile" class="${m==='mobile'?'on':''}" aria-pressed="${m==='mobile'}">모바일</button></div>
-    <div class="me">${CLOUD?'<span class="sync" id="sync" title="서버 저장 상태">저장됨</span>':''}<span class="idle" id="idleTxt"></span><span class="nm">${esc(u.name)} ${esc(e?(dutyOf(e)||posName(e.pos)):'')}</span><span class="role">${esc(roles)}</span><button id="out">로그아웃</button></div></header>
+    <div class="me">${CLOUD?'<span class="sync" id="sync" title="서버 저장 상태">저장됨</span><button type="button" class="pwb" id="chpw" title="비밀번호 변경">비밀번호</button>':''}<span class="idle" id="idleTxt"></span><span class="nm">${esc(u.name)} ${esc(e?(dutyOf(e)||posName(e.pos)):'')}</span><span class="role">${esc(roles)}</span><button id="out">로그아웃</button></div></header>
    <div class="shell"><nav class="side" aria-label="메뉴">${navHtml()}</nav><main class="main gut" id="main"></main></div>
    <nav class="tabbar" aria-label="하단 메뉴">${visibleMenu().filter(x=>x.tab).map(x=>`<button data-v="${x.k}" class="${S.view===x.k?'on':''}"><i></i>${x.tab}</button>`).join('')}<button data-v="more" class="${S.view==='more'?'on':''}"><i></i>전체</button></nav>`;
   $$('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m; lsSet('ayon.mode',S.mode); renderApp()});
@@ -870,7 +908,7 @@ function renderLogin(msg){ stopIdle(); document.documentElement.classList.remove
      <div class="field"><label for="upw">비밀번호</label><div class="inp"><input id="upw" type="password" placeholder="비밀번호 입력"><button type="button" class="eye" id="eye" aria-label="비밀번호 보기" aria-pressed="false">${EYE}</button></div></div>
      <div class="msg ${msg?.type||''}" id="lmsg" role="alert">${esc(msg?.text||'')}</div>
      <button class="btn pri block lg-go" type="submit"><span>켜기</span><span class="lg-go-sw" aria-hidden="true"><i></i></span></button>
-     <p class="lg-su">처음 오셨나요? <button type="button" id="su" class="lnk">가입하기</button>${CLOUD?' · <button type="button" id="fp" class="lnk">비밀번호 찾기</button>':''}</p></form>
+     <p class="lg-su">처음 오셨나요? <button type="button" id="su" class="lnk">가입하기</button>${CLOUD?' · <button type="button" id="fp" class="lnk">비밀번호를 잊었어요</button>':''}</p></form>
     ${demo.length?`<details class="lg-demo"><summary>시연용 샘플 계정 <span class="tag">개발기</span></summary><p>비밀번호는 모두 <b class="num">ay1234!</b> 입니다. 아이디를 누르면 입력됩니다.</p><table>${demo.map(u=>`<tr><td><button type="button" data-fill="${u.id}">${u.id}</button></td><td>${esc(empName(u.emp))}</td><td>${esc((u.roles||[]).map(x=>byId('role',x)?.name).join(', '))}</td></tr>`).join('')}</table></details>`:''}
    </section></main>`;
   const clk=()=>{const c=$('#lgClock'); if(!c){clearInterval(window._lc);return} const d=new Date(); c.textContent=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} (${'일월화수목금토'[d.getDay()]}) ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}; clk(); clearInterval(window._lc); window._lc=setInterval(clk,10000);
@@ -882,9 +920,9 @@ function renderLogin(msg){ stopIdle(); document.documentElement.classList.remove
   rec.onmousedown=e=>{e.preventDefault(); const dl=e.target.closest('[data-rdel]'); if(dl){lsSet('ayon.recent',recent().filter(x=>x.id!==dl.dataset.rdel)); showRec(); who(); return} const b=e.target.closest('[data-id]'); if(b){uid.value=b.dataset.id; rec.hidden=true; who(); pw.focus()}};
   $('#eye').onclick=()=>{const on=pw.type==='password'; pw.type=on?'text':'password'; $('#eye').innerHTML=on?EYE_OFF:EYE; $('#eye').setAttribute('aria-pressed',on); $('#eye').setAttribute('aria-label',on?'비밀번호 숨기기':'비밀번호 보기')};
   $$('[data-fill]').forEach(b=>b.onclick=()=>{uid.value=b.dataset.fill; pw.value='ay1234!'; who(); pw.focus()});
-  $('#su').onclick=openSignup; $('#fp')&&($('#fp').onclick=async()=>{const id=uid.value.trim().toLowerCase(); const m=$('#lmsg'); if(!id){m.textContent='아이디를 먼저 입력하세요.';m.className='msg err';uid.focus();return} const e=await cloudResetMail(id); m.textContent=e?('메일 발송 실패: '+e):`${loginEmail(id)} 로 비밀번호 재설정 메일을 보냈습니다.`; m.className='msg '+(e?'err':'info')}); who(); (uid.value?pw:uid).focus();
+  $('#su').onclick=openSignup; $('#fp')&&($('#fp').onclick=async()=>{const id=uid.value.trim().toLowerCase(); const m=$('#lmsg'); if(!MAIL){m.textContent='인사팀(또는 관리자)에 비밀번호 초기화를 요청하세요. 임시 비밀번호를 받아 로그인하면 새 비밀번호로 바꾸게 됩니다.';m.className='msg info';return} if(!id){m.textContent='아이디를 먼저 입력하세요.';m.className='msg err';uid.focus();return} const e=await cloudResetMail(id); m.textContent=e?('메일 발송 실패: '+e):`${loginEmail(id)} 로 비밀번호 재설정 메일을 보냈습니다.`; m.className='msg '+(e?'err':'info')}); who(); (uid.value?pw:uid).focus();
   $('#lf').onsubmit=e=>{e.preventDefault(); login(uid.value.trim().toLowerCase(),pw.value)} }
-function enterApp(u){ S.user={id:u.id,emp:u.emp,name:byId('emp',u.emp)?.name||u.name,roles:u.roles,ext:u.ext}; S.view=u.ext?'portal':'home'; u.last=STAMP(); audit('user',u.id,'로그인',''); save(); renderApp(); startIdle(); if(CLOUD) cloudRealtime() }
+function enterApp(u){ S.user={id:u.id,emp:u.emp,name:byId('emp',u.emp)?.name||u.name,roles:u.roles,ext:u.ext}; S.view=u.ext?'portal':'home'; u.last=STAMP(); audit('user',u.id,'로그인',''); save(); renderApp(); startIdle(); if(CLOUD){ cloudRealtime(); if(u.pwTemp) openPwChange(true) } }
 async function login(id,pw){ const m=$('#lmsg'), set=(t,c='err')=>{m.textContent=t;m.className='msg '+c};
   if(!id||!pw) return set('아이디와 비밀번호를 모두 입력하세요.');
   if((S.lock[id]||0)>Date.now()) return set(`비밀번호를 5회 틀려 잠겼습니다. ${Math.ceil((S.lock[id]-Date.now())/60000)}분 후 다시 시도하거나 인사팀에 해제를 요청하세요.`);
@@ -988,7 +1026,7 @@ function signupForm(kind){const emp=kind==='임직원';
       if(T('user').some(u=>u.id===id)||T('signup').some(s=>s.uid===id&&s.status==='대기')) return m.textContent='이미 가입했거나 승인 대기 중인 아이디입니다.';
       const r={id:uid('SU'),kind,name:kind==='기업 거래처'?$('#sbz',f).value.trim()+' · '+$('#sn',f).value.trim():$('#sn',f).value.trim(),uid:id,empNo:$('#sno',f).value.trim().toUpperCase(),pw:p,date:TODAY,status:'대기'};
       if(emp) r.name=$('#sn',f).value.trim();
-      if(CLOUD){ const b=$('.modal button.pri',f); b.disabled=true; m.className='msg info'; m.textContent='신청 중…'; cloudSignup(r,p).then(err=>{ b.disabled=false; if(err){m.className='msg err'; m.textContent=err; return} d.remove(); const lm=$('#lmsg'); if(lm){lm.textContent=`가입 신청을 보냈습니다. ${loginEmail(id)} 로 온 인증 메일을 누른 뒤, 인사팀 승인이 나면 로그인할 수 있습니다.`;lm.className='msg info'}}); return }
+      if(CLOUD){ const b=$('.modal button.pri',f); b.disabled=true; m.className='msg info'; m.textContent='신청 중…'; cloudSignup(r,p).then(err=>{ b.disabled=false; if(err){m.className='msg err'; m.textContent=err; return} d.remove(); const lm=$('#lmsg'); if(lm){lm.textContent=signupDoneMsg(id);lm.className='msg info'}}); return }
       T('signup').push(r); audit('signup',r.id,'가입 신청',r.name); save(); d.remove(); const lm=$('#lmsg'); if(lm){lm.textContent='가입 신청을 보냈습니다. 승인 후 로그인할 수 있습니다.';lm.className='msg info'}}})}
 
 /* 사용자 · 권한 화면 */
@@ -1008,7 +1046,7 @@ VIEWS.user=el=>{ const tab=S.utab||'사용자'; const tabs=['사용자','역할'
   bind();
   $$('[data-ur]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.ur); modal(`<h2>${esc(u.id)} 역할</h2><div class="ivs">${T('role').filter(r=>r.id!=='R-BASE').map(r=>`<label class="chkl" for="ro_${r.id}"><input type="checkbox" id="ro_${r.id}" value="${r.id}" ${(u.roles||[]).includes(r.id)?'checked':''}> ${esc(r.name)}</label>`).join('')}</div><p class="pmeta">기본 사용자 역할은 모든 계정에 자동으로 붙습니다.</p><div class="actions"><button type="button" class="btn" data-x>취소</button><button class="btn pri">저장</button></div>`,(f,d)=>f.onsubmit=e=>{e.preventDefault(); const nw=$$('input:checked',f).map(i=>i.value); if(u.id===S.user.id&&(u.roles||[]).includes('R-ADMIN')&&!nw.includes('R-ADMIN')){toast('자기 자신의 시스템 관리자 역할은 뺄 수 없습니다.');return} audit('user',u.id,'역할 변경',(u.roles||[]).map(x=>refName('role',x)).join(',')+' → '+nw.map(x=>refName('role',x)).join(',')); u.roles=nw; if(S.user.id===u.id)S.user.roles=nw; save(); d.remove(); VIEWS.user(el); toast('역할을 저장했습니다.')})});
   $$('[data-uo]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.uo); if(u.id===S.user.id) return toast('자기 계정은 중지할 수 없습니다.'); u.on=!u.on; audit('user',u.id,u.on?'다시 사용':'사용 중지'); save(); VIEWS.user(el); toast(u.on?'계정을 다시 사용합니다.':'계정을 중지했습니다. 로그인할 수 없습니다.')});
-  $$('[data-up]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.up); if(CLOUD) return ask('비밀번호 재설정 메일',`${esc(loginEmail(u.id))} 로 재설정 메일을 보냅니다. 본인이 메일의 링크를 눌러 새 비밀번호를 정합니다. (관리자도 비밀번호를 볼 수 없습니다)`,'메일 보내기',async()=>{const e=await cloudResetMail(u.id); audit('user',u.id,'비밀번호 재설정 메일'); save(); toast(e?'발송 실패: '+e:'재설정 메일을 보냈습니다.')}); u.pw='Temp-2026!'; audit('user',u.id,'비밀번호 초기화'); save(); toast('임시 비밀번호 Temp-2026! 로 초기화했습니다.')});
+  $$('[data-up]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.up); if(CLOUD) return MAIL?ask('비밀번호 재설정 메일',`${esc(loginEmail(u.id))} 로 재설정 메일을 보냅니다.`,'메일 보내기',async()=>{const e=await cloudResetMail(u.id); audit('user',u.id,'비밀번호 재설정 메일'); save(); toast(e?'발송 실패: '+e:'재설정 메일을 보냈습니다.')}):openPwReset(u); u.pw='Temp-2026!'; audit('user',u.id,'비밀번호 초기화'); save(); toast('임시 비밀번호 Temp-2026! 로 초기화했습니다.')});
 };
 function roleEditor(r,re){ modal(`<h2>${r?'역할 수정':'역할 만들기'}</h2><div class="fgrid2"><label for="rn">역할명<input id="rn" required value="${esc(r?.name||'')}"></label><label for="rd">설명<input id="rd" value="${esc(r?.desc||'')}"></label></div>${permMatrix(r||{perm:{}},false)}<p class="pmeta">"승인"은 상태 처리(확인 · 승인 · 마감 등)를 할 수 있는 권한입니다. 결재 승인은 결재선에 지정된 사람이 합니다.</p><div class="actions"><button type="button" class="btn" data-x>취소</button><button class="btn pri">${r?'저장':'만들기'}</button></div>`,(f,d)=>f.onsubmit=e=>{e.preventDefault(); const name=$('#rn',f).value.trim(); if(!name) return; if(T('role').some(x=>x!==r&&x.name===name)) return toast('같은 이름의 역할이 있습니다.');
     const perm={}; $$('[data-pm]:checked',f).forEach(c=>{const [m,a]=c.dataset.pm.split('|');(perm[m]||(perm[m]=[])).push(a)});
