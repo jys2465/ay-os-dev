@@ -4,5 +4,8 @@
 window.AYON_CONFIG = {
   env: 'dev',
   supabaseUrl: 'https://znxjjtdfxfhmuvtvjehq.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpueGpqdGRmeGZobXV2dHZqZWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxNTkwMjcsImV4cCI6MjEwOTczNTAyN30.ZlFDuX1aLFYgn8EDr0z-4llYmIfYgfskQ0bTXcIG_U4'
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpueGpqdGRmeGZobXV2dHZqZWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxNTkwMjcsImV4cCI6MjEwOTczNTAyN30.ZlFDuX1aLFYgn8EDr0z-4llYmIfYgfskQ0bTXcIG_U4',
+  /* 운영기 데이터 가져오기용 (운영기 공개키 · 읽기는 운영기 관리자 로그인으로만) */
+  prodUrl: 'https://tyaxofefikngmffpevgk.supabase.co',
+  prodAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5YXhvZmVmaWtuZ21mZnBldmdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxODUxMzQsImV4cCI6MjEwOTc2MTEzNH0.ruxjFzRJO6r3VGjufu98KQvumKN14tSBYR81A5mHUWk'
 };
