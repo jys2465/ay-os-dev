@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=1.4.0"></script>
+<script src="config.js?v=1.4.1"></script>
 <style>
 
 /* Layout: 개발기 띠 → 상단바(로고 · 중앙 PC/모바일 전환 · 사용자) → 좌측 메뉴 + 본문 / 모바일은 폭 420 프레임 + 하단 탭 */
@@ -619,9 +619,9 @@ html.mobile .fgrid2,html.mobile .aline{grid-template-columns:minmax(0,1fr)}
 .invtabs button.on{color:var(--fg);border-bottom-color:var(--navy)}
 .invtabs button:hover{color:var(--fg)}
 </style></head><body>
-<div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.4.0</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
+<div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.4.1</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
 <div id="app"></div><script>
-const APP_VER='1.4.0';
+const APP_VER='1.4.1';
 /* =====================================================================
    AY-ON (에이온) · 공통 엔진
    - 데이터 저장소(DB) · 번호 체계 · 감사 이력 · 권한
@@ -840,7 +840,10 @@ function fromRows(rows){ const db=emptyDB(); const cards={};
   for(const k of Object.keys(db)) if(Array.isArray(db[k])&&k!=='audit') db[k].sort((a,b)=>(a._o??0)-(b._o??0));
   return db }
 const keyOf=(t,id)=>t+SEP+id;
-const snapStr=(t,d)=>JSON.stringify(d);
+const TBL_NM=t=>({inv_cost:'입고 단가',inv_mv:'재고 수불',inv_item:'품목 기준정보',inv_po:'발주',inv_adj:'재고 조정',inv_count:'실사',inv_cfg:'재고 설정',inv_log:'업로드 기록',hr_contract:'노무 계약',ct_supply:'상품공급 계약',company:'법인 정보',emp:'직원',empcard:'인사기록카드',org:'조직',user:'계정',role:'역할',grant:'권한 부여',_meta:'시스템 설정'})[t]||t;
+/* 비교용 문자열: 키 순서를 정렬 (서버 jsonb 는 키 순서를 바꿔 돌려주므로, 그대로 비교하면 같은 기록을 '바뀜'으로 보고 다시 저장함) */
+const stableStr=v=>v===undefined?'null':(v===null||typeof v!=='object')?JSON.stringify(v):Array.isArray(v)?'['+v.map(stableStr).join(',')+']':'{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stableStr(v[k])).join(',')+'}';
+const snapStr=(t,d)=>stableStr(d);
 
 /* 전체 불러오기 (권한 안에서 보이는 기록만 옴) */
 async function cloudLoad(){ const rows=[]; const step=1000;
@@ -858,10 +861,19 @@ async function cloudFlush(){ if(_saving){ await _saving } if(!S.user) return; _s
   for(const [t,id,d] of toRows(DB)){ const k=keyOf(t,id); seen.add(k); const s=snapStr(t,d); if(SNAP.get(k)!==s) ups.push({tbl:t,id,data:d,_s:s,_k:k}) }
   const dels={}; for(const k of SNAP.keys()) if(!seen.has(k)){ const [t,id]=k.split(SEP); if(t==='audit'){ SNAP.delete(k); continue } (dels[t]||(dels[t]=[])).push(id) }
   try{
-    for(let i=0;i<ups.length;i+=400){ const ch=ups.slice(i,i+400); const {error}=await SB.from('ayon_records').upsert(ch.map(({tbl,id,data})=>({tbl,id,data})),{onConflict:'tbl,id'}); if(error) throw error; ch.forEach(u=>SNAP.set(u._k,u._s)) }
+    /* 변경 이력은 '추가'만 (이미 있으면 그대로 둠 — 서버 규칙상 고칠 수 없음) */
+    const aud=ups.filter(u=>u.tbl==='audit'), rest=ups.filter(u=>u.tbl!=='audit');
+    for(let i=0;i<aud.length;i+=400){ const ch=aud.slice(i,i+400); const {error}=await SB.from('ayon_records').upsert(ch.map(({tbl,id,data})=>({tbl,id,data})),{onConflict:'tbl,id',ignoreDuplicates:true}); if(error) console.warn('audit',error); ch.forEach(u=>SNAP.set(u._k,u._s)) }
+    /* 나머지: 묶음으로 저장하다 실패하면 한 건씩 다시 → 실패한 건만 남기고 나머지는 저장 */
+    const bad=[];
+    for(let i=0;i<rest.length;i+=400){ const ch=rest.slice(i,i+400); const {error}=await SB.from('ayon_records').upsert(ch.map(({tbl,id,data})=>({tbl,id,data})),{onConflict:'tbl,id'});
+      if(!error){ ch.forEach(u=>SNAP.set(u._k,u._s)); continue }
+      for(const u of ch){ const {error:e1}=await SB.from('ayon_records').upsert([{tbl:u.tbl,id:u.id,data:u.data}],{onConflict:'tbl,id'}); if(e1) bad.push([u,e1]); else SNAP.set(u._k,u._s) } }
+    if(bad.length){ console.error('save failed',bad); const by={}; bad.forEach(([u])=>{by[u.tbl]=(by[u.tbl]||0)+1});
+      throw new Error(`권한이 없거나 막힌 기록 ${bad.length}건(${Object.entries(by).map(([t,n])=>TBL_NM(t)+' '+n).join(', ')}) — ${bad[0][1].message}`) }
     for(const [t,ids] of Object.entries(dels)) for(let i=0;i<ids.length;i+=200){ const part=ids.slice(i,i+200); const {error}=await SB.from('ayon_records').delete().eq('tbl',t).in('id',part); if(error) throw error; part.forEach(id=>SNAP.delete(keyOf(t,id))) }
     syncState('저장됨')
-  }catch(e){ console.error(e); syncState('저장 실패',true); toast('서버 저장에 실패했습니다: '+(e.message||e)+' — 화면을 새로 고친 뒤 다시 시도하세요.') }
+  }catch(e){ console.error(e); syncState('저장 실패',true); toast('서버 저장에 실패했습니다: '+(e.message||e)+' — 계속되면 화면을 새로 고친 뒤 다시 시도하세요.') }
  })(); await _saving; _saving=null }
 function syncState(t,bad){ const el=$('#sync'); if(el){ el.textContent=t; el.classList.toggle('bad',!!bad) } }
 
@@ -1027,7 +1039,7 @@ function renderApp(){ const u=S.user, m=mode(); document.documentElement.classLi
    <nav class="tabbar" aria-label="하단 메뉴">${visibleMenu().filter(x=>x.tab).map(x=>`<button data-v="${x.k}" class="${S.view===x.k?'on':''}"><i></i>${x.tab}</button>`).join('')}<button data-v="more" class="${S.view==='more'?'on':''}"><i></i>전체</button></nav>`;
   $$('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m; lsSet('ayon.mode',S.mode); renderApp()});
   bindNav(); $('#out').onclick=()=>{stopIdle(); logout('로그아웃했습니다.')};
-  renderView(); clearInterval(window._it); window._it=setInterval(()=>{const el=$('#idleTxt'); if(!el)return; const s=Math.max(0,Math.ceil((lastAct+IDLE_MS()-Date.now())/1000)); el.textContent=`자동 로그아웃 ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`},1000)}
+  renderView(); clearInterval(window._it); window._it=setInterval(()=>{const el=$('#idleTxt'); if(!el)return; const s=Math.max(0,Math.ceil((lastSeen()+IDLE_MS()-Date.now())/1000)); if(s<=0&&S.user) return idleOut(); el.textContent=`자동 로그아웃 ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`},1000)}
 const VIEWS={};
 function renderView(){ const el=$('#main'); const v=S.view;
   if(v==='more'){ el.innerHTML=head('전체 메뉴','')+`<div class="moregrid">${visibleMenu().map(x=>x.g?`<h3 class="h3 mg">${x.g}</h3>`:`<button class="dept" data-go="${x.k}"><b>${x.n}</b></button>`).join('')}</div>`; $$('[data-go]',el).forEach(b=>b.onclick=()=>go(b.dataset.go)); return }
@@ -1037,16 +1049,29 @@ function renderView(){ const el=$('#main'); const v=S.view;
 
 /* ---------- 자동 로그아웃 ---------- */
 let idleT,warnT,cdT,lastAct=Date.now();
-const IDLE_MS=()=>$('#fastIdle')?.checked?30000:30*60000, WARN_MS=()=>$('#fastIdle')?.checked?10000:120000;
+/* 자동 로그아웃 (v1.4.1): 10분 · 화면을 보지 않아도(다른 탭 · 절전 · 창 닫음) 시간이 흐름 · 여러 탭은 가장 최근 사용 기준 */
+const IDLE_MIN=10;
+const IDLE_MS=()=>$('#fastIdle')?.checked?30000:IDLE_MIN*60000, WARN_MS=()=>$('#fastIdle')?.checked?10000:60000;
+const IDLE_TXT=()=>IDLE_MS()>=60000?Math.round(IDLE_MS()/60000)+'분':Math.round(IDLE_MS()/1000)+'초';
+const LA_KEY='ayon.lastAct';
+function lastSeen(){ let v=0; try{ v=+localStorage.getItem(LA_KEY)||0 }catch(e){} return Math.max(lastAct,v) }
+function markAct(force){ lastAct=Date.now(); if(force||!markAct.t||lastAct-markAct.t>5000){ markAct.t=lastAct; try{ localStorage.setItem(LA_KEY,String(lastAct)) }catch(e){} } }
+function idleExpired(){ return Date.now()-lastSeen()>=IDLE_MS() }
+function idleOut(){ stopIdle(); $$('.scrim').forEach(x=>x.remove()); try{ localStorage.removeItem(LA_KEY) }catch(e){} logout(`${IDLE_TXT()} 동안 사용하지 않아 자동 로그아웃되었습니다.`) }
 const EVS=['mousemove','keydown','click','touchstart','scroll','wheel'];
-function startIdle(){stopIdle(); lastAct=Date.now(); EVS.forEach(ev=>addEventListener(ev,onAct,{passive:true})); tick()}
-function stopIdle(){clearTimeout(idleT);clearTimeout(warnT);clearInterval(cdT);EVS.forEach(ev=>removeEventListener(ev,onAct));$('#idleM')?.remove()}
-function onAct(){ if($('#idleM')) return; lastAct=Date.now(); tick() }
-function tick(){clearTimeout(idleT);clearTimeout(warnT); warnT=setTimeout(showWarn,IDLE_MS()-WARN_MS()); idleT=setTimeout(()=>{stopIdle();$$('.scrim').forEach(x=>x.remove());logout('30분 동안 사용하지 않아 자동 로그아웃되었습니다.')},IDLE_MS())}
+function onVis(){ if(document.visibilityState!=='hidden'&&idleExpired()) idleOut() }
+function startIdle(){ stopIdle(); let prev=0; try{ prev=+localStorage.getItem(LA_KEY)||0 }catch(e){}
+  if(prev&&Date.now()-prev>=IDLE_MS()){ lastAct=prev; return idleOut() }      /* 창을 닫았다가 오래 뒤에 다시 연 경우 */
+  markAct(true); EVS.forEach(ev=>addEventListener(ev,onAct,{passive:true})); document.addEventListener('visibilitychange',onVis); addEventListener('focus',onVis); tick() }
+function stopIdle(){clearTimeout(idleT);clearTimeout(warnT);clearInterval(cdT);EVS.forEach(ev=>removeEventListener(ev,onAct));document.removeEventListener('visibilitychange',onVis);removeEventListener('focus',onVis);$('#idleM')?.remove()}
+function onAct(){ if($('#idleM')) return; if(idleExpired()) return idleOut(); markAct(); tick() }
+function tick(){clearTimeout(idleT);clearTimeout(warnT); const left=IDLE_MS()-(Date.now()-lastSeen());
+  warnT=setTimeout(()=>{ if(idleExpired()) return idleOut(); if(Date.now()-lastSeen()<IDLE_MS()-WARN_MS()-500) return tick(); showWarn() },Math.max(0,left-WARN_MS()));
+  idleT=setTimeout(()=>{ if(idleExpired()) idleOut(); else tick() },Math.max(0,left))}
 function showWarn(){const d=document.createElement('div');d.className='scrim center';d.id='idleM';
-  d.innerHTML=`<div class="modal" role="alertdialog" aria-labelledby="iw"><h2 id="iw">곧 자동 로그아웃됩니다</h2><p class="pmeta" style="font-size:13px">보안을 위해 30분 동안 사용이 없으면 로그아웃됩니다.</p><div class="count" id="cd"></div><div class="actions"><button class="btn" id="iwOut">지금 로그아웃</button><button class="btn pri" id="iwKeep">로그인 연장</button></div></div>`;
-  document.body.append(d); const end=lastAct+IDLE_MS(); const upd=()=>{const s=Math.max(0,Math.ceil((end-Date.now())/1000)); $('#cd').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}; upd(); cdT=setInterval(upd,500);
-  $('#iwKeep').onclick=()=>{clearInterval(cdT); d.remove(); lastAct=Date.now(); tick(); toast('로그인을 30분 연장했습니다.')}; $('#iwOut').onclick=()=>{stopIdle(); logout('로그아웃했습니다.')}; $('#iwKeep').focus()}
+  d.innerHTML=`<div class="modal" role="alertdialog" aria-labelledby="iw"><h2 id="iw">곧 자동 로그아웃됩니다</h2><p class="pmeta" style="font-size:13px">보안을 위해 ${IDLE_TXT()} 동안 사용이 없으면 로그아웃됩니다.</p><div class="count" id="cd"></div><div class="actions"><button class="btn" id="iwOut">지금 로그아웃</button><button class="btn pri" id="iwKeep">로그인 연장</button></div></div>`;
+  document.body.append(d); const upd=()=>{const s=Math.max(0,Math.ceil((lastSeen()+IDLE_MS()-Date.now())/1000)); if(s<=0) return idleOut(); if(Date.now()-lastSeen()<IDLE_MS()-WARN_MS()-500){ clearInterval(cdT); d.remove(); return tick() } $('#cd').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}; upd(); cdT=setInterval(upd,500);
+  $('#iwKeep').onclick=()=>{clearInterval(cdT); d.remove(); markAct(true); tick(); toast(`로그인을 ${IDLE_TXT()} 연장했습니다.`)}; $('#iwOut').onclick=()=>{stopIdle(); logout('로그아웃했습니다.')}; $('#iwKeep').focus()}
 
 /* ---------- 로그인 ---------- */
 const EYE=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -1889,8 +1914,9 @@ async function saveX(name,sheets,o={}){
 }
 
 /* ---------- 일일 리포트 ---------- */
+let repF={co:'',br:''};
 function vReport(){ if(needData())return;
- const M=Object.values(MET).filter(m=>m.st!=='drop'), g=s=>M.filter(m=>m.st===s);
+ const M=Object.values(MET).filter(m=>m.st!=='drop'&&(!repF.co||coName(MV[m.k].sup)===repF.co)&&(!repF.br||brandOf(m.k)===repF.br)), g=s=>M.filter(m=>m.st===s);
  const need=g('gap').concat(g('urg'),g('soon'));
  const lots=M.flatMap(m=>m.lots.map(l=>({...l,k:m.k})));
  const disp=lots.filter(l=>l.stage==='disp'), stop=lots.filter(l=>['stop','exp'].includes(l.stage)), risk=lots.filter(l=>l.risk);
@@ -1915,6 +1941,8 @@ function vReport(){ if(needData())return;
  <div class="panel"><h3>④ 미판매 · 과잉 · 확인 필요</h3><ul class="rl">${g('none').filter(m=>m.qty>0).sort((a,b)=>b.amt-a.amt).slice(0,6).map(m=>`<li>${stb('none')} ${nm(m.k)} — 재고 ${f0(m.qty)}개, 28일 출고 없음</li>`).join('')}${g('over').sort((a,b)=>b.left-a.left).slice(0,6).map(m=>`<li>${stb('over')} ${nm(m.k)} — ${f0(m.left)}일분</li>`).join('')}${neg.slice(0,6).map(m=>`<li><span class="st s-urg">마이너스</span> ${nm(m.k)} — 현재고 ${f0(m.qty)}개 <a href="#" data-adj="${esc(m.k)}">재고 조정</a></li>`).join('')}</ul></div>
  </div>
  <div style="display:flex;gap:8px"><button class="b" id="repX">리포트 엑셀 다운로드</button></div>`;
+ $('#invRoot h2').insertAdjacentHTML('afterend',`<div class="filters" style="margin-top:8px"><select id="rpCo" aria-label="법인">${opt(coList(),repF.co,'전체 법인')}</select><select id="rpBr" aria-label="브랜드">${opt(brList(),repF.br,'전체 브랜드')}</select>${repF.co||repF.br?`<span class="note">${esc([repF.co,repF.br].filter(Boolean).join(' · '))} 만 보는 중</span>`:''}</div>`);
+ $('#rpCo').onchange=e=>{repF.co=e.target.value;vReport()};$('#rpBr').onchange=e=>{repF.br=e.target.value;vReport()};
  $('#repX').onclick=()=>saveX(`일일재고리포트_${T}.xlsx`,{'발주 필요':[['상태','브랜드','상품코드','품목','법인','현재고','입고예정','입고예정일',...[0,1,2,3].map(i=>'일평균 '+WR(i)),'28일 일평균 '+WR(4),'재고보유일수','리드타임','발주권고일','권장발주량'],...need.map(m=>[STL[m.st][0],brandOf(m.k),m.k,MV[m.k].name,coName(MV[m.k].sup),m.qty,m.inq,m.inD,...m.w.map(v=>Math.round(v)),Math.round(m.avg),Math.round(m.left),m.lt,m.ordD,m.sug])],'소비기한':[['단계','상품코드','품목','입고','소비기한','수량','위험'],...stop.concat(disp,risk).map(l=>[STG[l.stage][0],l.k,MV[l.k].name,l.ind,l.e,l.q,l.risk])]});
 }
 document.addEventListener('click',e=>{const j=e.target.closest('a[data-adj]');if(j){e.preventDefault();adjPre={code:j.dataset.adj};go('adj');return}const a=e.target.closest('a[data-go]');if(!a)return;e.preventDefault();stSel=a.dataset.go;sF={...sF,st:'',q:a.dataset.go};go('stock')});
@@ -2048,7 +2076,7 @@ function vDay(){ if(needData())return;
 }
 
 /* ---------- 입고 정보 입력 (단가 · 소비기한) ---------- */
-let cF={kind:'',co:'',q:'',miss:true},pending={};const wq={};
+let cF={kind:'',co:'',br:'',q:'',miss:true},pending={};const wq={};
 function costRows(){ const R=[];
  for(const k in CALC){ const m=MV[k],c=CALC[k],co=coName(m.sup),cc=COST[k]||{};
   if(c.open.q!==0)R.push({kind:'open',kn:'기초 (1/1)',d:(m.first||'').slice(0,4)+'-01-01',k,name:m.name,co,q:c.open.q,v:cc.open??null,e:cc.oe||OPEN_EXP});
@@ -2059,11 +2087,11 @@ function vCost(){ if(needData())return;
  const all=costRows(), n=(kd,f)=>all.filter(r=>r.kind===kd&&(f==='v'?r.v==null:!r.e)).length;
  $('#invRoot').innerHTML=head('입고 단가 · 소비기한','1월 1일 기초와 입고 건마다 단가(개당, 원)와 소비기한을 넣습니다 · 넣는 즉시 저장되고 선입선출 금액 · 소비기한 단계가 다시 계산됩니다 · 기초 건의 입고일은 1월 1일로 봅니다')+`
  <div class="kpis"><div class="kpi"><span>기초 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('open','v')} · ${n('open','e')}<small> / ${all.filter(r=>r.kind==='open').length}</small></b></div><div class="kpi"><span>입고 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('in','v')} · ${n('in','e')}<small> / ${all.filter(r=>r.kind==='in').length}</small></b></div><div class="kpi cstp"><span>입고 금액 (입력분)</span><b>${fM(all.filter(r=>r.kind==='in').reduce((s,r)=>s+(r.v||0)*r.q,0))}<small> 원</small></b></div></div>
- <div class="filters"><select id="cK"><option value="">기초 + 입고</option><option value="open" ${cF.kind==='open'?'selected':''}>기초 (1/1)</option><option value="in" ${cF.kind==='in'?'selected':''}>입고</option></select><select id="cCo">${opt(coList(),cF.co,'전체 법인')}</select><input id="cQ" placeholder="상품코드 · 상품명" value="${esc(cF.q)}"><label><input type="checkbox" id="cM" ${cF.miss?'checked':''}> 미입력만</label><button class="b" id="cT">입력 서식 다운로드</button><button class="b" id="cU">입력 서식 업로드</button><input type="file" id="cFi" accept=".xlsx,.xls" hidden></div>
+ <div class="filters"><select id="cK"><option value="">기초 + 입고</option><option value="open" ${cF.kind==='open'?'selected':''}>기초 (1/1)</option><option value="in" ${cF.kind==='in'?'selected':''}>입고</option></select><select id="cCo">${opt(coList(),cF.co,'전체 법인')}</select><select id="cBr" aria-label="브랜드">${opt(brList(),cF.br,'전체 브랜드')}</select><input id="cQ" placeholder="상품코드 · 상품명" value="${esc(cF.q)}"><label><input type="checkbox" id="cM" ${cF.miss?'checked':''}> 미입력만</label><button class="b" id="cT">입력 서식 다운로드</button><button class="b" id="cU">입력 서식 업로드</button><input type="file" id="cFi" accept=".xlsx,.xls" hidden></div>
  <div id="cMsg"></div><div class="tbl tall"><table id="coT"></table></div>`;
- $('#cK').onchange=e=>{cF.kind=e.target.value;draw()};$('#cCo').onchange=e=>{cF.co=e.target.value;draw()};$('#cQ').oninput=e=>{cF.q=e.target.value;draw()};$('#cM').onchange=e=>{cF.miss=e.target.checked;draw()};
+ $('#cK').onchange=e=>{cF.kind=e.target.value;draw()};$('#cCo').onchange=e=>{cF.co=e.target.value;draw()};$('#cBr').onchange=e=>{cF.br=e.target.value;draw()};$('#cQ').oninput=e=>{cF.q=e.target.value;draw()};$('#cM').onchange=e=>{cF.miss=e.target.checked;draw()};
  function draw(){ const q=cF.q.trim().toLowerCase(), A=costRows();
-  let rows=A.filter(r=>(!cF.kind||r.kind===cF.kind)&&(!cF.co||r.co===cF.co)&&(!q||(r.k+' '+r.name).toLowerCase().includes(q))&&(!cF.miss||(canPrice()&&r.v==null)||!r.e));
+  let rows=A.filter(r=>(!cF.kind||r.kind===cF.kind)&&(!cF.co||r.co===cF.co)&&(!cF.br||brandOf(r.k)===cF.br)&&(!q||(r.k+' '+r.name).toLowerCase().includes(q))&&(!cF.miss||(canPrice()&&r.v==null)||!r.e));
   if(!SORT.co)rows.sort((a,b)=>a.kind!==b.kind?(a.kind==='open'?-1:1):a.d!==b.d?(a.d<b.d?1:-1):(a.k<b.k?-1:1));
   const t=$('#coT');
   t.innerHTML=`<thead><tr><th data-k="kn">구분</th><th data-k="d">입고일</th><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="co">법인</th><th class="n" data-k="q">수량</th><th class="n cstp" data-k="v">단가 (원)</th><th class="n cstp">금액</th><th data-k="e">소비기한</th></tr></thead><tbody></tbody>`;
@@ -2117,8 +2145,9 @@ function queueWrite(k){ if(!db){delete pending[k];return} if(wq[k]){wq[k].again=
 
 /* ---------- 발주 관리 ---------- */
 let poPre=null;
+let poF={co:'',br:''};
 function vPo(){ if(needData())return;
- const keys=Object.keys(MV).sort(), L=Object.entries(PO).map(([id,p])=>({id,...p,name:MV[p.code]?.name||p.code})).sort((a,b)=>(a.st==='예정'?0:1)-(b.st==='예정'?0:1)||String(a.inD).localeCompare(String(b.inD)));
+ const keys=Object.keys(MV).sort(), L=Object.entries(PO).map(([id,p])=>({id,...p,name:MV[p.code]?.name||p.code})).filter(p=>(!poF.co||(MV[p.code]&&coName(MV[p.code].sup)===poF.co))&&(!poF.br||brandOf(p.code)===poF.br)).sort((a,b)=>(a.st==='예정'?0:1)-(b.st==='예정'?0:1)||String(a.inD).localeCompare(String(b.inD)));
  const pre=poPre||{};poPre=null; const k0=pre.code||'';
  $('#invRoot').innerHTML=head('발주 관리','더존 품의가 승인된 발주를 등록하면 입고 예정 수량 · 날짜가 재고보유일수와 발주 권고에 바로 반영됩니다 · 이지어드민에 입고가 잡히면 입고 완료로 바꿉니다')+`
  <div class="panel"><h3>발주 등록</h3><form id="poF" class="pof">
@@ -2128,7 +2157,8 @@ function vPo(){ if(needData())return;
   <label>입고 예정일<input id="pI" type="date" required value="${k0?addS(T,ltOf(k0)):''}"></label>
   <label>품의번호<input id="pN" placeholder="더존 문서번호" style="width:140px"></label>
   <button class="b p">등록</button></form><div id="pM"></div><p class="note" id="pHint">${k0&&MET[k0]?`권장 ${f0(MET[k0].sug)}개 · 리드타임 ${MET[k0].lt}일 · MOQ ${f0(MET[k0].moq)}`:''}</p></div>
- <div class="tbl"><table data-sb="1"><thead><tr><th>상태</th><th>품목</th><th class="n">수량</th><th>발주일</th><th>입고 예정일</th><th>품의번호</th><th>등록</th><th></th></tr></thead><tbody>${L.map(p=>`<tr><td><span class="st ${p.st==='예정'?'s-soon':p.st==='입고 완료'?'s-ok':'s-none'}">${p.st}</span></td><td>${esc(p.code)} ${esc(p.name)}</td><td class="n">${f0(p.qty)}</td><td>${p.ordD||''}</td><td>${p.inD||''}${p.st==='예정'&&(CALC[p.code]?.days||[]).some(x=>x.iq>0&&x.d>=p.ordD)?' <span class="st s-over">입고 발생 · 완료 처리 필요</span>':p.st==='예정'&&p.inD<T?' <span class="st s-urg">지연</span>':''}</td><td>${esc(p.no||'')}</td><td class="note">${esc(p.by||'')}</td><td>${p.st==='예정'?`<button class="b sm" data-a="done" data-id="${p.id}">입고 완료</button> <button class="b sm" data-a="cancel" data-id="${p.id}">취소</button>`:`<button class="b sm" data-a="del" data-id="${p.id}">삭제</button>`}</td></tr>`).join('')||'<tr><td colspan="8">등록된 발주가 없습니다. 현재고 · 발주 권고에서 품목을 눌러 바로 등록할 수 있습니다.</td></tr>'}</tbody></table></div>`;
+ <div class="filters" style="margin-top:10px"><select id="poCo" aria-label="법인">${opt(coList(),poF.co,'전체 법인')}</select><select id="poBr" aria-label="브랜드">${opt(brList(),poF.br,'전체 브랜드')}</select></div><div class="tbl"><table data-sb="1"><thead><tr><th>상태</th><th>품목</th><th class="n">수량</th><th>발주일</th><th>입고 예정일</th><th>품의번호</th><th>등록</th><th></th></tr></thead><tbody>${L.map(p=>`<tr><td><span class="st ${p.st==='예정'?'s-soon':p.st==='입고 완료'?'s-ok':'s-none'}">${p.st}</span></td><td>${esc(p.code)} ${esc(p.name)}</td><td class="n">${f0(p.qty)}</td><td>${p.ordD||''}</td><td>${p.inD||''}${p.st==='예정'&&(CALC[p.code]?.days||[]).some(x=>x.iq>0&&x.d>=p.ordD)?' <span class="st s-over">입고 발생 · 완료 처리 필요</span>':p.st==='예정'&&p.inD<T?' <span class="st s-urg">지연</span>':''}</td><td>${esc(p.no||'')}</td><td class="note">${esc(p.by||'')}</td><td>${p.st==='예정'?`<button class="b sm" data-a="done" data-id="${p.id}">입고 완료</button> <button class="b sm" data-a="cancel" data-id="${p.id}">취소</button>`:`<button class="b sm" data-a="del" data-id="${p.id}">삭제</button>`}</td></tr>`).join('')||'<tr><td colspan="8">등록된 발주가 없습니다. 현재고 · 발주 권고에서 품목을 눌러 바로 등록할 수 있습니다.</td></tr>'}</tbody></table></div>`;
+ $('#poCo').onchange=e=>{poF.co=e.target.value;vPo()};$('#poBr').onchange=e=>{poF.br=e.target.value;vPo()};
  $('#pK').onchange=e=>{const k=e.target.value.split(' ')[0];if(MET[k]){$('#pQ').value=MET[k].sug||MET[k].moq;$('#pI').value=addS($('#pO').value||T,ltOf(k));$('#pHint').textContent=`권장 ${f0(MET[k].sug)}개 · 리드타임 ${MET[k].lt}일 · MOQ ${f0(MET[k].moq)}`}};
  $('#poF').onsubmit=async e=>{e.preventDefault();if(!canInv())return;const k=$('#pK').value.split(' ')[0];if(!MV[k]){$('#pM').innerHTML='<div class="msg s-urg">목록에 있는 품목을 고르세요.</div>';return}
   const p={code:k,qty:+$('#pQ').value,ordD:$('#pO').value,inD:$('#pI').value,no:$('#pN').value.trim(),st:'예정',by:me?me.nm:'',at:new Date().toISOString()};
@@ -2252,7 +2282,7 @@ function vManual(){
   if(!/^[A-Z0-9_-]{2,20}$/.test(k)){alert('상품코드는 영문 · 숫자로 넣어 주세요');return} if(MV[k]){alert('이미 있는 상품코드입니다');return} if(!n){alert('상품명을 넣어 주세요');return}
   const d=$('#mD').value||((T||today).slice(0,4)+'-01-01');
   const doc={code:k,name:n,sup:$('#mC').value,wh:$('#mW').value.trim(),src:'manual',open:+$('#mQ').value||0,first:d,rows:{},at:new Date().toISOString(),by:me?me.nm:''};
-  const b=$('#mB').value.trim(); if(b){ITEM[k]={...(ITEM[k]||{}),brand:b};if(db)db.collection('item').doc(k).set({brand:b,at:doc.at}).catch(()=>{})}
+  const b=$('#mB').value.trim(); if(b){ITEM[k]={...(ITEM[k]||{}),brand:b};if(db)db.collection('item').doc(k).set({...ITEM[k],brand:b,at:doc.at}).catch(()=>{})}
   const v=$('#mV').value, ex=$('#mE').value; if((v!==''&&canPrice())||ex){const c={open:v!==''&&canPrice()?+v:null,r:{},oe:ex||null,e:{}};COST[k]=c;pending[k]=c;queueWrite(k)}
   await saveMv(doc);go('manual')};
  const tb=$('#mnT'); if(tb){ tb.addEventListener('input',e=>{const tr=e.target.closest('tr.mnrow');if(!tr)return;const v=[...tr.querySelectorAll('input')].reduce((a,i)=>{a[+i.dataset.i]=+i.value||0;return a},[0,0,0,0,0,0]);tr.querySelector('.mnEnd').textContent=f0(+tr.dataset.p+v[0]-v[1]-v[2]+v[3]+v[4]-v[5])});
@@ -2857,10 +2887,10 @@ function bulkPreview(A,done){
    <div class="actions"><button type="button" class="btn" data-x>취소</button><button class="btn pri" ${plan.length?'':'disabled'}>${plan.length}명 반영</button></div>`,(f,d)=>{
     f.onsubmit=ev=>{ ev.preventDefault(); for(const [e,n] of plan) empApply(e,n,false); audit('emp','-','엑셀 일괄 수정',plan.length+'명'); save(); d.remove(); toast(plan.length+'명을 반영했습니다.'); done&&done() } },true) }
 /* =====================================================================
-   메뉴 구성 (v1.4.0)
+   메뉴 구성 (v1.4.1)
    - 조직관리 4 · 재고관리 10 · 계약관리 3 — 묶음 아래 한 단계로만 (상위 · 하위 메뉴 없음)
    - 비슷한 화면은 한 메뉴의 탭으로: 매일 업로드(이지어드민 | 지앤비 수기), 재고 수불부(전체 | 품목 일별),
-     권한 관리(사용자 | 역할 | 부서 권한), 데이터 관리(백업 | 운영기 가져오기 | 변경 이력 | 시스템 설정)
+     권한 관리(사용자 | 역할 | 부서 권한), 변경 이력 · 백업(변경 이력 | 백업 받기 | 개발기만: 운영기 가져오기 · 시스템 설정)
    - 개발중 메뉴: 개발기에서만 보임 · 운영기에서는 메뉴와 화면 모두 막음
    - 권한 키는 04_inventory_security.sql 의 역할(perm)과 같음 · 처리 종류에 '엑셀' 추가
    ===================================================================== */
@@ -2873,7 +2903,7 @@ MENU_PERM.data='cfg';
   const INVK=['invrep','invstk','invbr','invexp','invbook','invup','invcost','invadj','invpo','invmst','ctlabor','ctsupply','ctco'];
   const LIVE=[
     {g:'조직관리'},
-    {k:'orgchart',n:'조직도',tab:'조직'}, {k:'people',n:'직원 명부'}, pick('user',{n:'권한 관리'}), {k:'data',n:'데이터 관리'},
+    {k:'orgchart',n:'조직도',tab:'조직'}, {k:'people',n:'직원 명부'}, pick('user',{n:'권한 관리'}), {k:'data',n:'변경 이력 · 백업'},
     {g:'재고관리'},
     {k:'invrep',n:'일일 리포트',tab:'재고'}, {k:'invup',n:'매일 업로드'}, {k:'invcost',n:'입고 단가 · 소비기한'},
     {k:'invstk',n:'현재고 · 발주 권고'}, {k:'invpo',n:'발주 관리'}, {k:'invexp',n:'소비기한 관리'},
@@ -2902,10 +2932,10 @@ MENU_PERM.data='cfg';
     return _rv() };
 })();
 
-/* 데이터 관리: 백업 받기 · 운영기 데이터 가져오기(개발기만) · 변경 이력 · 시스템 설정 */
+/* 변경 이력 · 백업 (v1.4.1): 운영기 = 변경 이력 · 백업 받기 / 개발기는 운영기 데이터 가져오기 · 시스템 설정 탭이 더 있음 */
 VIEWS.data=el=>{
-  const tabs=[['bk','백업 받기'],...(typeof VIEWS.pull==='function'?[['pull','운영기 데이터 가져오기']]:[]),['audit','변경 이력'],['cfg','시스템 설정']];
-  const t=tabs.some(x=>x[0]===S.dtab)?S.dtab:'bk';
+  const tabs=[['audit','변경 이력'],['bk','백업 받기'],...(typeof VIEWS.pull==='function'?[['pull','운영기 데이터 가져오기']]:[]),...(IS_PROD?[]:[['cfg','시스템 설정 (개발중)']])];
+  const t=tabs.some(x=>x[0]===S.dtab)?S.dtab:'audit';
   el.innerHTML=`<div class="invtabs" role="tablist" style="margin-bottom:6px">${tabs.map(([k,l])=>`<button type="button" role="tab" class="${k===t?'on':''}" aria-selected="${k===t}" data-dt="${k}">${l}</button>`).join('')}</div><div id="dbody"></div>`;
   $$('[data-dt]',el).forEach(b=>b.onclick=()=>{S.dtab=b.dataset.dt;VIEWS.data(el)});
   const body=$('#dbody',el);
@@ -2914,7 +2944,7 @@ VIEWS.data=el=>{
   if(t==='cfg') return VIEWS.cfg(body);
   const tbls=Object.entries(DB).filter(([k,v])=>Array.isArray(v)&&v.length).sort((a,b)=>a[0].localeCompare(b[0]));
   const NAME={emp:'직원',org:'조직',pos:'직위',corp:'법인',user:'계정',user_plan:'처음 로그인 때 줄 역할',role:'역할',grant:'부서 · 개인 권한',audit:'변경 이력',inv_mv:'재고 수불(품목별)',inv_cost:'입고 단가 · 소비기한',inv_item:'품목 기준정보',inv_po:'발주',inv_adj:'재고 조정',inv_count:'실사',inv_cfg:'재고 설정',inv_log:'업로드 기록',hr_contract:'노무 계약',ct_supply:'상품공급 계약',company:'법인 정보 · 로고'};
-  body.innerHTML=head('백업 받기','조직관리 › 데이터 관리',`${ENV==='prod'?'운영기':ENV==='dev'?'개발기':'시연판'} · ${tbls.reduce((a,[,v])=>a+v.length,0).toLocaleString()}건`)+`<div class="panel"><div class="bd">
+  body.innerHTML=head('백업 받기','조직관리 › 변경 이력 · 백업',`${ENV==='prod'?'운영기':ENV==='dev'?'개발기':'시연판'} · ${tbls.reduce((a,[,v])=>a+v.length,0).toLocaleString()}건`)+`<div class="panel"><div class="bd">
     <p style="margin:0 0 10px">지금 서버에 있는 에이온 데이터 전체를 파일로 받아 보관합니다. 반영(업데이트) 전이나 큰 수정 전에 받아 두세요. 비밀번호는 들어 있지 않습니다.</p>
     <div class="actions" style="justify-content:flex-start;margin-bottom:14px"><button class="btn pri" id="bkj">전체 백업 (JSON)</button><button class="btn" id="bkx">표별 엑셀</button></div>
     <div class="tw"><table class="t"><thead><tr><th>데이터</th><th>이름</th><th class="num">건수</th></tr></thead><tbody>${tbls.map(([k,v])=>`<tr><td><code>${esc(k)}</code></td><td>${esc(NAME[k]||'')}</td><td class="num">${v.length.toLocaleString()}</td></tr>`).join('')}</tbody></table></div>
@@ -3000,6 +3030,7 @@ if(CLOUD&&ENV==='dev'&&CFG.prodUrl&&CFG.prodAnonKey){
    - 비밀번호를 잊은 직원: 관리자 · 인사가 '비밀번호 초기화' → 다음 로그인 때 처음처럼 비밀번호를 새로 만듦
    - 에이온은 임직원 전용 (외부 계약자 · 거래처 가입 없음 · 전자계약은 이폼사인)
    ===================================================================== */
+const clearIdleMark=()=>{ try{ localStorage.removeItem('ayon.lastAct') }catch(e){} };
 const PW_OK=p=>p.length>=10&&/[A-Za-z]/.test(p)&&/\d/.test(p)&&/[^A-Za-z0-9]/.test(p);
 const normId=v=>String(v||'').trim().toLowerCase().split('@')[0];
 const maskNm=n=>{n=String(n||''); return n.length>=3?n[0]+'*'.repeat(n.length-2)+n.slice(-1):n.length===2?n[0]+'*':n};
@@ -3047,11 +3078,11 @@ function firstLogin(id0){
         const er=await cloudActivate(); if(er){ await SB.auth.signOut(); return fail(er) }
         try{ await cloudLoad() }catch(x){ return fail('서버에서 데이터를 불러오지 못했습니다: '+x.message) }
         const u=T('user').find(x=>x.id===id&&x.on); if(!u){ await SB.auth.signOut(); return fail('계정을 찾지 못했습니다. 인사팀에 문의하세요.') }
-        d.remove(); lsSet('ayon.recent',[{id,name:empName(u.emp)},...recent().filter(x=>x.id!==id)].slice(0,3)); enterApp(u); toast('환영합니다. 비밀번호를 만들었습니다.'); return }
+        d.remove(); lsSet('ayon.recent',[{id,name:empName(u.emp)},...recent().filter(x=>x.id!==id)].slice(0,3)); (clearIdleMark(),enterApp(u)); toast('환영합니다. 비밀번호를 만들었습니다.'); return }
       /* 시연판 */
       const e2=T('emp').find(x=>normId(x.email)===id); let u=T('user').find(x=>x.id===id);
       if(u){ u.pw=p; delete u.reset } else { u={id,emp:e2.id,pw:p,roles:(byId('user_plan',id)?.roles||[]).filter(x=>x!=='R-ADMIN'&&byId('role',x)),on:true,auto:STAMP()}; T('user').push(u); audit('user',id,'자동 가입','처음 로그인 · 직원 명부 일치') }
-      save(); d.remove(); enterApp(u) } }) }
+      save(); d.remove(); (clearIdleMark(),enterApp(u)) } }) }
 
 /* 로그인 화면 (임직원 전용): 아이디는 회사 이메일 @ 앞, 처음이면 비밀번호 만들기 */
 (function(){ const _rl=renderLogin;
@@ -3085,6 +3116,8 @@ openSignup=function(){ firstLogin(normId($('#uid')?.value)) };
 /* 로그인 화면이 화면 높이 전체를 채우도록 (개발기 띠 높이만큼 뺌) */
 (function(){ const st=document.createElement('style'); st.textContent='#app:has(> .lg){min-height:calc(100dvh - var(--devh,0px));display:flex;flex-direction:column}#app > .lg{flex:1 0 auto;min-height:calc(100dvh - var(--devh,0px))}.lg-foot{gap:14px;flex-wrap:wrap}.lg-ver{opacity:.75}'; document.head.appendChild(st);
   addEventListener('resize',()=>{ const bar=document.querySelector('.devbar'); const bh=bar&&getComputedStyle(bar).display!=='none'?bar.offsetHeight:0; document.documentElement.style.setProperty('--devh',bh+'px') }) })();
+/* 비밀번호로 새로 로그인하면 예전 '마지막 사용 시각'은 지움 (자동 로그아웃이 바로 걸리지 않도록) */
+(function(){ const _lg=login; login=async function(id,pw){ clearIdleMark(); return _lg(id,pw) } })();
 /* =====================================================================
    초기 데이터 · full=true: 샘플 (숫자 · 거래처 · 상품은 가상) / false: 설치 직후 상태
    ===================================================================== */
