@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=1.7.1"></script>
+<script src="config.js?v=1.8.0"></script>
 <style>
 
 /* Layout: 개발기 띠 → 상단바(로고 · 중앙 PC/모바일 전환 · 사용자) → 좌측 메뉴 + 본문 / 모바일은 폭 420 프레임 + 하단 탭 */
@@ -688,9 +688,9 @@ html.mobile .fgrid2,html.mobile .aline{grid-template-columns:minmax(0,1fr)}
 .invw input.cin.saved{outline:2px solid var(--ok-soft)}
 #main .fitbox{padding-top:0!important;padding-bottom:0!important}
 </style></head><body>
-<div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.7.1</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
+<div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.8.0</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
 <div id="app"></div><script>
-const APP_VER='1.7.1';
+const APP_VER='1.8.0';
 /* =====================================================================
    AY-ON (에이온) · 공통 엔진
    - 데이터 저장소(DB) · 번호 체계 · 감사 이력 · 권한
@@ -2010,7 +2010,9 @@ const AVH=dk=>`<th class="n"${dk?' data-k="avg"':''}>28일 일평균<br><span cl
 const ordCell=d=>!d?'–':d<=T?`<span class="st s-urg">지금</span>${d<T?` <span class="note">${f0(diffS(d,T))}일 늦음</span>`:''}`:d;
 function lastDate(){let m='',a='';for(const k in MV)for(const d in MV[k].rows||{}){if(d>a)a=d;if(MV[k].src!=='manual'&&d>m)m=d}return m||a}
 function firstDate(){let m='';for(const k in MV)for(const d in MV[k].rows||{})if(!m||d<m)m=d;return m}
-function missInfo(f){let co=0,ce=0;for(const k in CALC){if(!live(k)||(f&&!f(k)))continue;const c=CALC[k],cc=COST[k]||{};if(c.open.q!==0){if(cc.open==null)co++}for(const x of c.days)if(x.iq>0){if(cc.r?.[x.d]==null)co++;if(!cc.e?.[x.d])ce++}}return {co,ce}}
+/* 판매 완료 입고분 (v1.8): 지금 남은 재고(선입선출)에 없는 기초 · 입고 건 — 소비기한이 비어도 알림 건수에서 뺌 */
+function leftKeys(k){ const S=new Set(), c=CALC[k]; if(!c)return S; for(const l of c.layers){ if(!(l.q>0))continue; if(l.d==='기초')S.add('open'); else if(l.d===l.ind)S.add('in|'+l.d) } return S }
+function missInfo(f){let co=0,ce=0,cs=0;for(const k in CALC){if(!live(k)||(f&&!f(k)))continue;const c=CALC[k],cc=COST[k]||{},L=leftKeys(k);if(c.open.q!==0){if(cc.open==null)co++;if(!cc.oe&&!L.has('open'))cs++}for(const x of c.days)if(x.iq>0){if(cc.r?.[x.d]==null)co++;if(!cc.e?.[x.d]){if(L.has('in|'+x.d))ce++;else cs++}}}return {co,ce,cs}}
 
 /* 공통 UI */
 const isRow=k=>!!MV[k];
@@ -2340,17 +2342,18 @@ function vDay(){ if(needData())return;
 
 /* ---------- 입고 정보 입력 (단가 · 소비기한) ---------- */
 let cF={kind:'',co:'',br:'',q:'',miss:true},pending={};const wq={};
-const missOk=r=>!cF.miss||(cF.miss==='v'?r.v==null:cF.miss==='e'?!r.e:(canPrice()&&r.v==null)||!r.e);
+const eMiss=r=>!r.e&&!r.sold;   /* 다 팔린 입고의 빈 소비기한은 미입력 알림에서 뺌 */
+const missOk=r=>!cF.miss||(cF.miss==='v'?r.v==null:cF.miss==='e'?eMiss(r):(canPrice()&&r.v==null)||eMiss(r));
 function costRows(){ const R=[];
- for(const k in CALC){ if(!live(k))continue; const m=MV[k],c=CALC[k],co=coName(m.sup),cc=COST[k]||{};
-  if(c.open.q!==0)R.push({kind:'open',kn:m.src==='dnb'?`기초 (${m.first})`:'기초 (1/1)',d:m.src==='dnb'?m.first:(m.first||'').slice(0,4)+'-01-01',k,name:m.name,co,q:c.open.q,v:cc.open??null,e:cc.oe||OPEN_EXP,h:(cc.h||[]).filter(h=>h.d==='기초')});
-  for(const x of c.days)if(x.iq>0)R.push({kind:'in',kn:'입고',d:x.d,k,name:m.name,co,q:x.iq,v:cc.r?.[x.d]??null,e:cc.e?.[x.d]||'',h:(cc.h||[]).filter(h=>h.d===x.d)}); }
+ for(const k in CALC){ if(!live(k))continue; const m=MV[k],c=CALC[k],co=coName(m.sup),cc=COST[k]||{},LK=leftKeys(k);
+  if(c.open.q!==0)R.push({kind:'open',kn:m.src==='dnb'?`기초 (${m.first})`:'기초 (1/1)',d:m.src==='dnb'?m.first:(m.first||'').slice(0,4)+'-01-01',k,name:m.name,co,q:c.open.q,v:cc.open??null,e:cc.oe||OPEN_EXP,sold:!LK.has('open'),h:(cc.h||[]).filter(h=>h.d==='기초')});
+  for(const x of c.days)if(x.iq>0)R.push({kind:'in',kn:'입고',d:x.d,k,name:m.name,co,q:x.iq,v:cc.r?.[x.d]??null,e:cc.e?.[x.d]||'',sold:!LK.has('in|'+x.d),h:(cc.h||[]).filter(h=>h.d===x.d)}); }
  return R;
 }
 function vCost(){ if(needData())return;
- const all=costRows(), n=(kd,f)=>all.filter(r=>r.kind===kd&&(f==='v'?r.v==null:!r.e)).length;
+ const all=costRows(), n=(kd,f)=>all.filter(r=>r.kind===kd&&(f==='v'?r.v==null:eMiss(r))).length, ns=all.filter(r=>!r.e&&r.sold).length;
  $('#invRoot').innerHTML=head('단가 · 소비기한','기초(1/1)와 이지어드민 입고 건마다 단가(개당, 원)와 소비기한을 넣습니다 · 넣는 즉시 저장됩니다','단가를 바꾸면 이전 금액 · 바꾼 사람 · 시각이 변경 이력에 남고, 단가 칸 옆 “변경 n”에 마우스를 올리면 보입니다. 선입선출 금액 · 소비기한 단계는 바로 다시 계산됩니다. 기초 건의 입고일은 1월 1일로 봅니다. 발주 · 입고 탭의 입고 확정에서 넣은 단가 · 소비기한도 여기에 같이 보입니다.')+`
- <div class="kpis"><div class="kpi"><span>기초 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('open','v')} · ${n('open','e')}<small> / ${all.filter(r=>r.kind==='open').length}</small></b></div><div class="kpi"><span>입고 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('in','v')} · ${n('in','e')}<small> / ${all.filter(r=>r.kind==='in').length}</small></b></div><div class="kpi cstp"><span>입고 금액 (입력분)</span><b>${fA(all.filter(r=>r.kind==='in').reduce((s,r)=>s+(r.v||0)*r.q,0))}<small> ${UNIT}</small></b></div></div>
+ <div class="kpis"><div class="kpi"><span>기초 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('open','v')} · ${n('open','e')}<small> / ${all.filter(r=>r.kind==='open').length}</small></b></div><div class="kpi"><span>입고 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('in','v')} · ${n('in','e')}<small> / ${all.filter(r=>r.kind==='in').length}</small></b></div><div class="kpi"><span>판매 완료 · 소비기한 없음 (알림 제외)</span><b>${ns}<small> 건</small></b></div><div class="kpi cstp"><span>입고 금액 (입력분)</span><b>${fA(all.filter(r=>r.kind==='in').reduce((s,r)=>s+(r.v||0)*r.q,0))}<small> ${UNIT}</small></b></div></div>
  <div class="filters"><select id="cK"><option value="">기초 + 입고</option><option value="open" ${cF.kind==='open'?'selected':''}>기초 (1/1)</option><option value="in" ${cF.kind==='in'?'selected':''}>입고</option></select><select id="cCo">${opt(coList(),cF.co,'전체 법인')}</select><select id="cBr" aria-label="브랜드">${opt(brList(),cF.br,'전체 브랜드')}</select><input id="cQ" placeholder="상품코드 · 상품명" value="${esc(cF.q)}"><select id="cM" aria-label="미입력">${[['','전체'],['1','미입력 (단가 또는 소비기한)'],...(canPrice()?[['v','단가 미입력만']]:[]),['e','소비기한 미입력만']].map(([v,t])=>`<option value="${v}" ${String(cF.miss===true?'1':cF.miss||'')===v?'selected':''}>${t}</option>`).join('')}</select><button class="b" id="cT">입력 서식 다운로드</button><button class="b" id="cU">입력 서식 업로드</button><input type="file" id="cFi" accept=".xlsx,.xls" hidden></div>
  <div id="cMsg"></div><div class="tbl tall"><table id="coT"></table></div>`;
  $('#cK').onchange=e=>{cF.kind=e.target.value;draw()};$('#cCo').onchange=e=>{cF.co=e.target.value;draw()};$('#cBr').onchange=e=>{cF.br=e.target.value;draw()};$('#cQ').oninput=e=>{cF.q=e.target.value;draw()};$('#cM').onchange=e=>{const v=e.target.value;cF.miss=v==='1'?true:v||false;draw()};
@@ -2360,7 +2363,7 @@ function vCost(){ if(needData())return;
   const t=$('#coT');
   t.innerHTML=`<thead><tr><th data-k="kn">구분</th><th data-k="d">입고일</th><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="co">법인</th><th class="n" data-k="q">수량</th><th class="n cstp" data-k="v">단가 (원)</th><th class="n cstp">금액</th><th data-k="e">소비기한</th></tr></thead><tbody></tbody>`;
   sortRows(t,'co',rows,draw);
-  t.tBodies[0].innerHTML=rows.slice(0,600).map(r=>`<tr class="${(canPrice()&&r.v==null)||!r.e?'miss':''}"><td>${r.kn}</td><td>${r.d}</td><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td>${esc(r.co)}</td><td class="n">${f0(r.q)}</td><td class="n cstp"><input class="cost ${r.v==null?'empty':''}" inputmode="decimal" value="${r.v??''}" data-f="v" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 단가">${r.h&&r.h.length?` <span class="st s-none" title="${esc(r.h.map(h=>`${(h.at||'').slice(0,16).replace('T',' ')} ${h.by||''}: ${h.o==null?'없음':f0(h.o)} → ${h.n==null?'지움':f0(h.n)}`).join('\n'))}">변경 ${r.h.length}</span>`:''}</td><td class="n cstp">${r.v==null?'':f0(r.v*r.q)}</td><td style="white-space:nowrap">${Array.isArray(r.e)?`<span class="splt">${r.e.map(x=>`<span>${x.e||'<span class=unk>미입력</span>'} · ${f0(x.q)}</span>`).join('')}</span>`:`<input type="date" class="cost ${r.e?'':'empty'}" value="${r.e}" data-f="e" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 소비기한" style="width:140px;text-align:left">`} <button class="b sm spl" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" data-q="${r.q}">${Array.isArray(r.e)?'수정':'나누기'}</button></td></tr>`).join('')||`<tr><td colspan="9">${cF.miss?'미입력 항목이 없습니다.':'해당 항목이 없습니다.'}</td></tr>`;
+  t.tBodies[0].innerHTML=rows.slice(0,600).map(r=>`<tr class="${(canPrice()&&r.v==null)||eMiss(r)?'miss':''}"><td>${r.kn}</td><td>${r.d}</td><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td>${esc(r.co)}</td><td class="n">${f0(r.q)}</td><td class="n cstp"><input class="cost ${r.v==null?'empty':''}" inputmode="decimal" value="${r.v??''}" data-f="v" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 단가">${r.h&&r.h.length?` <span class="st s-none" title="${esc(r.h.map(h=>`${(h.at||'').slice(0,16).replace('T',' ')} ${h.by||''}: ${h.o==null?'없음':f0(h.o)} → ${h.n==null?'지움':f0(h.n)}`).join('\n'))}">변경 ${r.h.length}</span>`:''}</td><td class="n cstp">${r.v==null?'':f0(r.v*r.q)}</td><td style="white-space:nowrap">${Array.isArray(r.e)?`<span class="splt">${r.e.map(x=>`<span>${x.e||'<span class=unk>미입력</span>'} · ${f0(x.q)}</span>`).join('')}</span>`:`<input type="date" class="cost ${r.e?'':'empty'}" value="${r.e}" data-f="e" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 소비기한" style="width:140px;text-align:left">${!r.e&&r.sold?' <span class="st s-none" title="지금 남은 재고가 없는 입고분 — 소비기한 미입력 알림에서 뺌">판매 완료</span>':''}`} <button class="b sm spl" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" data-q="${r.q}">${Array.isArray(r.e)?'수정':'나누기'}</button></td></tr>`).join('')||`<tr><td colspan="9">${cF.miss?'미입력 항목이 없습니다.':'해당 항목이 없습니다.'}</td></tr>`;
   if(rows.length>600)t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="9">${rows.length}건 중 600건 표시 — 법인 · 검색으로 좁혀 주세요</td></tr></tfoot>`);
  }
  $('#coT').addEventListener('click',e=>{const b=e.target.closest('button.spl');if(!b||!canInv())return;const tr=b.closest('tr');if(tr.nextElementSibling&&tr.nextElementSibling.classList.contains('splitrow')){tr.nextElementSibling.remove();return}
@@ -2400,7 +2403,7 @@ function vCost(){ if(needData())return;
 /* 단가 · 소비기한 바로 입력 (오늘 할 일 · 품목 상세에서) */
 const cinV=(r)=>`<input class="cost cin ${r.v==null?'empty':''}" inputmode="decimal" value="${r.v??''}" data-f="v" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" placeholder="단가" aria-label="${esc(r.name)} 단가" style="width:100px">`;
 const cinE=(r)=>Array.isArray(r.e)?'<span class="note">나눠 입력됨</span>':`<input type="date" class="cost cin ${r.e?'':'empty'}" value="${r.e||''}" data-f="e" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 소비기한" style="width:140px;text-align:left">`;
-function drawMiss(okF){ const B=$('#missB'); if(!B)return; const R=costRows().filter(r=>okF(r.k)&&((canPrice()&&r.v==null)||!r.e)).sort((a,b)=>a.d<b.d?1:-1).slice(0,10);
+function drawMiss(okF){ const B=$('#missB'); if(!B)return; const R=costRows().filter(r=>okF(r.k)&&((canPrice()&&r.v==null)||eMiss(r))).sort((a,b)=>a.d<b.d?1:-1).slice(0,10);
  B.innerHTML=R.length?`<div class="tbl"><table><thead><tr><th>구분</th><th>입고일</th><th>품목</th><th class="n">수량</th>${canPrice()?'<th>단가 (원)</th>':''}<th>소비기한</th></tr></thead><tbody>${R.map(r=>`<tr><td>${r.kn}</td><td>${r.d}</td><td>${nmL(r.k)} <span class="note">${esc(r.k)}</span></td><td class="n">${f0(r.q)}</td>${canPrice()?`<td>${cinV(r)}</td>`:''}<td>${canInv()?cinE(r):(r.e||'미입력')}</td></tr>`).join('')}</tbody></table></div><p class="note"><a href="#" data-to="cost" data-miss="1">입고 관리 › 단가 · 소비기한에서 전체 보기</a></p>`:'<p class="note">미입력 건이 없습니다.</p>' }
 document.addEventListener('change',e=>{ const i=e.target.closest('input.cin'); if(!i)return;
  if(i.dataset.f==='v'){const raw=i.value.replace(/[, ]/g,'');const v=raw===''?null:Number(raw);if(raw!==''&&!(v>=0)){i.value='';alert('0 이상의 숫자를 넣어 주세요');return}setCost(i.dataset.k,i.dataset.kind,i.dataset.d,'v',v)}
@@ -2821,8 +2824,30 @@ function arRow(tr,a,AM){ let P=a.parts.length?a.parts.map(p=>({r:p.r,q:p.q,memo:
  draw(); lockWrite();
 }
 
+/* ---------- 실사 → 과거 기초 · 입고 소비기한 채우기 (v1.8) ----------
+   실사일에 남아 있던 재고(선입선출)를 원래 기초 · 입고 건으로 거슬러 올라가, 그 건의 소비기한을 실사 값으로 바꿈
+   - 이미 넣은 값이 있어도 실사 값으로 교체 · 한 입고 건이 여러 소비기한으로 나뉘면 가장 빠른 소비기한 하나로
+   - 바꾼 내역은 실사 기록(bf)에 남겨 실사를 지우면 되돌림 · 소비기한 변경 이력(eh)에 '실사로 채움' */
+function cntBackfill(id){ const x=CNT[id]; if(!x||!MV[x.code])return null; const k=x.code, f=fifo(k,x.d), E={};
+ for(const l of f.layers){ if(!(l.q>0)||!l.e)continue; const key=l.d==='기초'?'open':(l.d===l.ind&&/^\d{4}-\d{2}-\d{2}$/.test(l.d)?'in|'+l.d:null); if(!key)continue; if(!E[key]||l.e<E[key])E[key]=l.e }
+ const c=JSON.parse(JSON.stringify(COST[k]||{open:null,r:{},oe:null,e:{}})); c.r=c.r||{}; c.e=c.e||{}; const items=[];
+ for(const key in E){ const e=E[key];
+  if(key==='open'){ const old=c.oe??null; if(JSON.stringify(old)!==JSON.stringify(e)){items.push({kind:'open',d:'기초',old,new:e});c.oe=e} }
+  else { const d=key.slice(3); if(e<d)continue; const old=c.e[d]??null; if(JSON.stringify(old)!==JSON.stringify(e)){items.push({kind:'in',d,old,new:e});c.e[d]=e} } }
+ return {k,c,items} }
+async function applyBackfill(id){ const x=CNT[id]; const r=cntBackfill(id); const at=new Date().toISOString(), by=me?me.nm:'';
+ if(r&&r.items.length){ r.c.eh=(r.c.eh||[]).concat(r.items.map(i=>({d:i.d,o:i.old,n:i.new,by,at,src:'실사 '+x.d}))).slice(-60);
+  COST[r.k]=r.c; pending[r.k]=r.c; queueWrite(r.k);
+  if(typeof audit==='function')try{audit('inv_cost',r.k,'실사로 소비기한 채움',`${MV[r.k]?.name||r.k} 실사 ${x.d} · ${r.items.map(i=>`${i.d} ${Array.isArray(i.old)?'나눔':i.old||'없음'}→${i.new}`).join(', ')}`)}catch(e){} }
+ x.bf={at,by,items:((x.bf&&x.bf.items)||[]).concat(r?r.items:[])}; x.bfv=1; CNT[id]=x;
+ if(db)try{await db.collection('count').doc(id).set(JSON.parse(JSON.stringify(x)))}catch(e){}
+ return r?r.items.length:0 }
+function undoBackfill(x){ if(!x||!x.bf||!x.bf.items.length||!MV[x.code])return; const k=x.code, c=JSON.parse(JSON.stringify(COST[k]||{open:null,r:{},oe:null,e:{}})); c.e=c.e||{}; let n=0;
+ for(const i of x.bf.items.slice().reverse()){ if(i.kind==='open'){ if(JSON.stringify(c.oe??null)===JSON.stringify(i.new)){c.oe=i.old;n++} } else if(JSON.stringify(c.e[i.d]??null)===JSON.stringify(i.new)){ if(i.old==null)delete c.e[i.d]; else c.e[i.d]=i.old; n++ } }
+ if(n){ COST[k]=c; pending[k]=c; queueWrite(k) } }
+
 /* ---------- 재고 조정 (수기) ---------- */
-let adjPre=null;
+let adjPre=null, CTMSG='';
 function vAdj(){ if(needData())return;
  const keys=Object.keys(MV).filter(live).sort(), pre=adjPre||{};adjPre=null; const k0=pre.code||'';
  const neg=Object.values(MET).filter(m=>m.qty<0&&m.st!=='drop').sort((a,b)=>a.qty-b.qty);
@@ -2837,17 +2862,21 @@ function vAdj(){ if(needData())return;
  <div class="panel"><h3>마이너스 재고 <span class="note">${neg.length}품목 · ${T} 기준</span></h3><div class="tbl" style="max-height:260px;overflow:auto"><table><thead><tr><th>품목</th><th class="n">현재고</th><th></th></tr></thead><tbody>${neg.map(m=>`<tr><td>${esc(m.k)} ${esc(MV[m.k].name)}</td><td class="n" style="color:var(--red)">${f0(m.qty)}</td><td><button class="b sm" data-zero="${esc(m.k)}">0으로 맞추기</button></td></tr>`).join('')||'<tr><td colspan="3">마이너스 재고가 없습니다.</td></tr>'}</tbody></table></div></div></div>
  <div class="panel"><h3>재고 실사 (수량 · 소비기한 일괄 업데이트)</h3><p class="note">실사한 수량을 소비기한별로 넣으면 ① 장부와의 차이가 그날 조정으로 들어가고 ② 남은 재고의 소비기한이 실사 결과로 바뀝니다. 원가는 선입선출 순서를 그대로 유지합니다.</p>
   <div class="pof" id="ctF"><label>실사일<input type="date" id="ctD" value="${T}"></label><button class="b" id="ctT" type="button">실사 서식 다운로드 (전 품목)</button><button class="b" id="ctU" type="button">실사 서식 업로드</button><input type="file" id="ctFi" accept=".xlsx,.xls" hidden>
-  <label>품목 하나만 실사<input id="ctK" list="aL" placeholder="상품코드 또는 상품명" style="min-width:240px"></label></div><div id="ctR"></div></div>
- <h3>조정 · 실사 내역</h3><div class="tbl tall"><table><thead><tr><th>일자</th><th>품목</th><th class="n">수량</th><th>사유</th><th>메모 · 소비기한</th><th>등록</th><th></th></tr></thead><tbody>${L.map(a=>`<tr><td>${a.d}</td><td>${esc(a.code)} ${esc(a.name)}</td><td class="n">${a.qty>0?'+':''}${f0(a.qty)}</td><td>${esc(a.reason)}</td><td>${a.cnt?esc(expTxt(a.lots)):esc(a.memo||'')}</td><td class="note">${esc(a.by||'')} ${esc((a.at||'').slice(0,10))}</td><td><button class="b sm" data-a="adel" data-id="${a.id}" data-c="${a.cnt?1:''}">삭제</button></td></tr>`).join('')||'<tr><td colspan="7">조정 내역이 없습니다.</td></tr>'}</tbody></table></div>`;
+  <label>품목 하나만 실사<input id="ctK" list="aL" placeholder="상품코드 또는 상품명" style="min-width:240px"></label></div>
+  <p class="note" style="margin-top:6px">실사를 반영하면 실사일에 남아 있던 재고의 원래 <b>기초 · 입고 건 소비기한도 실사 값으로</b> 바뀝니다 (이미 넣은 값도 교체, 한 입고가 여러 소비기한이면 가장 빠른 것). 실사를 지우면 되돌립니다.</p>
+  ${(()=>{const n=Object.values(CNT).filter(x=>!x.bfv).length;return n&&canInv()?`<div style="margin-top:6px"><button class="b wr" id="ctBf" type="button">지난 실사 ${n}건 → 과거 소비기한 소급 적용</button></div>`:''})()}<div id="ctR">${CTMSG}</div></div>
+ <h3>조정 · 실사 내역</h3><div class="tbl tall"><table><thead><tr><th>일자</th><th>품목</th><th class="n">수량</th><th>사유</th><th>메모 · 소비기한</th><th>등록</th><th></th></tr></thead><tbody>${L.map(a=>`<tr><td>${a.d}</td><td>${esc(a.code)} ${esc(a.name)}</td><td class="n">${a.qty>0?'+':''}${f0(a.qty)}</td><td>${esc(a.reason)}</td><td>${a.cnt?esc(expTxt(a.lots))+(a.bf&&a.bf.items.length?` <span class="st s-ok" title="${esc(a.bf.items.map(i=>`${i.d}: ${Array.isArray(i.old)?'나눔':i.old||'없음'} → ${i.new}`).join('\n'))}">과거 소비기한 ${a.bf.items.length}건 채움</span>`:''):esc(a.memo||'')}</td><td class="note">${esc(a.by||'')} ${esc((a.at||'').slice(0,10))}</td><td><button class="b sm" data-a="adel" data-id="${a.id}" data-c="${a.cnt?1:''}">삭제</button></td></tr>`).join('')||'<tr><td colspan="7">조정 내역이 없습니다.</td></tr>'}</tbody></table></div>`;
  const bookAt=(k,d,skip)=>{const sv=CNT[skip];if(sv)delete CNT[skip];const f=fifo(k,d);if(sv)CNT[skip]=sv;const D=f.days;return {q:D.length?D[D.length-1].eq:f.open.q,lots:f.layers.filter(l=>l.q>0)}};
  const ctId=(k,d)=>'c'+k+'_'+d;
  async function saveCounts(list){ if(!canInv())return; const d=$('#ctD').value||T; let n=0;
   for(const x of list){const id=ctId(x.k,d),b=bookAt(x.k,d,id),tot=x.lots.reduce((s,l)=>s+l.q,0);const doc={code:x.k,d,lots:x.lots,book:b.q,diff:tot-b.q,reason:'재고 실사',by:me?me.nm:'',at:new Date().toISOString()};CNT[id]=doc;n++;
    if(db)try{await db.collection('count').doc(id).set(doc)}catch(e){alert('실사를 저장하지 못했습니다: '+x.k)}}
-  recalc();go('adj');$('#ctR')&&($('#ctR').innerHTML=`<div class="msg s-ok">${n}품목 실사를 반영했습니다.</div>`);}
+  recalc(); let bf=0; for(const x of list){ bf+=await applyBackfill(ctId(x.k,d)) } recalc();
+  CTMSG=`<div class="msg s-ok">${n}품목 실사를 반영했습니다 · 과거 기초 · 입고 소비기한 ${bf}건을 실사 값으로 채웠습니다.</div>`; go('adj');}
  $('#ctT').onclick=()=>{const d=$('#ctD').value||T;const rows=[];Object.keys(MV).filter(k=>stOf(k)!=='취급중단').sort((a,b)=>brIdx(brandOf(a))-brIdx(brandOf(b))||(a<b?-1:1)).forEach(k=>{const b=bookAt(k,d,ctId(k,d));const g={};b.lots.forEach(l=>{const e=l.e||'';g[e]=(g[e]||0)+l.q});const es=Object.keys(g).sort((x,y)=>(x||'9').localeCompare(y||'9'));if(!es.length&&b.q===0)return;(es.length?es:['']).forEach(e=>rows.push([brandOf(k),k,MV[k].name,e,g[e]||b.q,'']))});
   saveX(`재고실사서식_${d}.xlsx`,{'실사':[['브랜드','상품코드','품목','소비기한','장부수량','실사수량'],...rows]})};
  $('#ctU').onclick=()=>$('#ctFi').click();
+ const bfb=$('#ctBf'); if(bfb)bfb.onclick=async()=>{if(!canInv())return;const ids=Object.keys(CNT).filter(id=>!CNT[id].bfv).sort((a,b)=>String(CNT[a].d).localeCompare(String(CNT[b].d)));bfb.disabled=true;let n=0,i=0;for(const id of ids){n+=await applyBackfill(id);i++;bfb.textContent=`소급 적용 중 ${i} / ${ids.length}`}recalc();CTMSG=`<div class="msg s-ok">지난 실사 ${ids.length}건을 소급 적용해 과거 기초 · 입고 소비기한 ${n}건을 채웠습니다.</div>`;go('adj')};
  $('#ctFi').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   const A=XLSX.utils.sheet_to_json((wb=>wb.Sheets[wb.SheetNames[0]])(XLSX.read(await f.arrayBuffer())),{header:1,raw:true,defval:''});const h=A[0].map(String),[ic,ie,iq]=['상품코드','소비기한','실사수량'].map(x=>h.indexOf(x));
   if(ic<0||iq<0){$('#ctR').innerHTML='<div class="msg s-urg">실사 서식이 아닙니다 (상품코드 · 소비기한 · 실사수량 열 필요)</div>';return}
@@ -2868,7 +2897,7 @@ function vAdj(){ if(needData())return;
   const ez=(MV[k].rows[dd]||[])[3]||0,dup=Object.values(ADJ).filter(a=>a.code===k&&a.d===dd).length;if((ez||dup)&&!confirm(`${dd} 같은 날 ${ez?`이지어드민에도 조정 ${ez>0?'+':''}${f0(ez)}개`:''}${ez&&dup?', ':''}${dup?`에이온 조정 ${dup}건`:''}이 이미 있습니다. 두 번 반영될 수 있습니다. 그래도 등록할까요?`))return;
   const a={code:k,d:$('#aD').value,qty:q,reason:$('#aR').value,memo:$('#aM').value.trim(),by:me?me.nm:'',at:new Date().toISOString()};const id='a'+Date.now().toString(36);ADJ[id]=a;recalc();go('adj');
   if(db)try{await db.collection('adj').doc(id).set(a)}catch(e2){alert('조정을 저장하지 못했습니다')}};
- $('#invRoot').querySelectorAll('button[data-a="adel"]').forEach(b=>b.onclick=async()=>{if(!canInv())return;const id=b.dataset.id,col=b.dataset.c?'count':'adj';if(col==='count')delete CNT[id];else delete ADJ[id];recalc();go('adj');if(db)try{await db.collection(col).doc(id).delete()}catch(e){}});
+ $('#invRoot').querySelectorAll('button[data-a="adel"]').forEach(b=>b.onclick=async()=>{if(!canInv())return;const id=b.dataset.id,col=b.dataset.c?'count':'adj';if(col==='count'){if(CNT[id]&&CNT[id].bf&&CNT[id].bf.items.length&&!confirm(`이 실사로 채운 과거 소비기한 ${CNT[id].bf.items.length}건도 원래대로 되돌립니다. 지울까요?`))return;undoBackfill(CNT[id]);delete CNT[id]}else delete ADJ[id];recalc();go('adj');if(db)try{await db.collection(col).doc(id).delete()}catch(e){}});
 }
 
 /* =================== 계약관리 =================== */
@@ -3196,7 +3225,7 @@ function show(devKey,el){ const TB=ITABS[devKey]?ITABS[devKey].filter(([t])=>tab
   el.querySelectorAll('[data-itab]').forEach(b=>b.onclick=()=>{ ITAB[devKey]=b.dataset.itab; WRAP=null; show(devKey,el) });
   $('#xlAll').onclick=exportView;
   db.refresh(); recalc() }
-return {show,DEVK,setTab:(k,t)=>{ITAB[k]=t}};
+return {show,DEVK,setTab:(k,t)=>{ITAB[k]=t},_s:()=>({MET,COST,CNT,MV,T,recalc,go})};   /* _s: 점검용 (읽기) */
 
 })();
 /* =====================================================================
