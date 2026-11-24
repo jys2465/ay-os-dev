@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=1.4.1"></script>
+<script src="config.js?v=1.5.0"></script>
 <style>
 
 /* Layout: 개발기 띠 → 상단바(로고 · 중앙 PC/모바일 전환 · 사용자) → 좌측 메뉴 + 본문 / 모바일은 폭 420 프레임 + 하단 탭 */
@@ -608,9 +608,39 @@ html.mobile .fgrid2,html.mobile .aline{grid-template-columns:minmax(0,1fr)}
 .invw tr.splitrow td{background:var(--soft)}
 .invw td.hm{background:rgba(77,82,90,var(--a))}
 .invw a[data-go]{color:inherit;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.invw .tr{display:inline-block;min-width:16px;text-align:center;font-weight:700;border-radius:8px;padding:0 4px;font-size:12px}
+.invw details.info{margin:-2px 0 10px;font-size:12px;color:var(--mut)}
+.invw details.info summary{cursor:pointer;display:inline-block;color:var(--mut)}
+.invw details.info>div{margin-top:6px;padding:10px 12px;background:var(--soft);border-radius:8px;line-height:1.7;color:var(--ink)}
+.invw #vctl{display:inline-flex;gap:6px;align-items:center}
+.invw #vctl select{font:inherit;font-size:12px;padding:3px 6px}
+.invw .hdl{border:0;background:none;cursor:grab;font-size:15px;line-height:1;padding:2px 4px;color:var(--mut)}
+.invw .hdl:focus-visible{outline:2px solid var(--acc)}
+.invw tr.drag{opacity:.45}
+.invw input::placeholder{color:var(--mut);opacity:.55}
+.invw tr.exb td{color:var(--mut)}
+.invw tr.exb td input{opacity:.7}
+.invw .rcrow>td{background:var(--soft)}
+.invw .mcards{display:none;gap:8px;margin-top:8px}
+.invw .mcard{display:grid;gap:4px;text-align:left;font:inherit;border:1px solid var(--line);border-radius:10px;background:var(--sf);color:var(--ink);padding:10px 12px;cursor:pointer}
+.invw .mcard .mc2{display:flex;gap:12px;font-size:12px;color:var(--mut)}
+.invw .mcard .mc2 b{color:var(--ink)}
+@media (max-width:760px){.invw .mcards{display:grid}.invw .tbl.mh{display:none}}
+.invw.idrawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:var(--sf);border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.12);z-index:80;overflow:auto;padding:16px 18px 40px}
+.invw.idbk{position:fixed;inset:0;background:rgba(0,0,0,.18);z-index:79}
+.invw.idrawer .idh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.invw.idrawer h3{margin:2px 0 8px;font-size:16px}
+.invw.idrawer h4{margin:16px 0 6px;font-size:13px}
+.invw.idrawer .idk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 8px}
+.invw.idrawer .idk>div,.invw.idrawer .idw>div{border:1px solid var(--line);border-radius:8px;padding:6px 8px;display:grid;gap:2px}
+.invw.idrawer .idk span,.invw.idrawer .idw span{font-size:11px;color:var(--mut)}
+.invw.idrawer .idk b{font-size:15px}
+.invw.idrawer .idk em{font-size:11px;font-style:normal;color:var(--mut)}
+.invw.idrawer .idw{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.invw.idrawer .ida{display:flex;gap:6px;margin:6px 0}
 /* v1.4.0 · 왼쪽 메뉴: 묶음 이름을 메뉴와 같은 크기 · 굵게 / 개발중 묶음은 흐리게 */
 .side .grp{font-size:14px;font-weight:700;color:var(--fg);letter-spacing:0;padding:16px 10px 6px;border-top:1px solid var(--line);margin-top:6px}
-.side .grp:first-child{border-top:0;margin-top:0;padding-top:8px}
+.side .grp:first-child{border-top:0;margin-top:0;padding-top:18px}
 .side .grp[data-fold^="g:개발중"]{font-size:12px;font-weight:600;color:var(--faint)}
 .side .nav{font-size:14px;padding-left:16px}
 /* 한 메뉴 안의 탭 */
@@ -618,10 +648,28 @@ html.mobile .fgrid2,html.mobile .aline{grid-template-columns:minmax(0,1fr)}
 .invtabs button{border:0;background:none;padding:8px 14px;font:inherit;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
 .invtabs button.on{color:var(--fg);border-bottom-color:var(--navy)}
 .invtabs button:hover{color:var(--fg)}
+/* v1.5.0 · 화면 위쪽 여백 (제목이 상단 바에 붙지 않게) */
+.main>.ph:first-child,.main>.invw:first-child,.main>.invtabs:first-child{margin-top:8px}
+.side{padding-top:6px}
+/* 재고: 수량 · 금액 보기 스위치와 단위 (원가 보는 역할만) */
+.invbar #vctl{display:inline-flex;gap:6px;align-items:center}
+.invbar #vctl select{font:inherit;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+/* 모바일: 표 대신 카드 · PC 전용 안내 */
+.mobile .invw .mcards{display:grid}
+.mobile .invw .tbl.mh{display:none}
+.mobile .invw .filters{flex-wrap:wrap}
+.mobile .invw .filters>*{flex:1 1 140px}
+.mobile .invw .chips{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+.mobile .invw .chips .chip{flex:none}
+.msg.pconly{margin:0 0 10px;background:var(--warn-soft);color:var(--warn);padding:10px 12px;border-radius:8px;font-size:13px}
+.mobile .invw.idrawer{width:100vw}
+.mobile .invw.idrawer .idk{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mobile .top .me .role{display:none}
+.mobile .top .seg button{padding:4px 10px}
 </style></head><body>
-<div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.4.1</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
+<div class="devbar gut" id="devbar" role="status"><b>개발기 DEV</b><span class="sep">|</span><span>시험용 서버 · 운영 데이터 아님</span><span class="sep">|</span><span class="num">v1.5.0</span><label for="fastIdle"><input type="checkbox" id="fastIdle"> 시험용: 자동 로그아웃 30초로 단축</label></div>
 <div id="app"></div><script>
-const APP_VER='1.4.1';
+const APP_VER='1.5.0';
 /* =====================================================================
    AY-ON (에이온) · 공통 엔진
    - 데이터 저장소(DB) · 번호 체계 · 감사 이력 · 권한
@@ -1036,7 +1084,7 @@ function renderApp(){ const u=S.user, m=mode(); document.documentElement.classLi
     <div class="seg" role="group" aria-label="화면 전환"><button data-m="pc" class="${m==='pc'?'on':''}" aria-pressed="${m==='pc'}">PC</button><button data-m="mobile" class="${m==='mobile'?'on':''}" aria-pressed="${m==='mobile'}">모바일</button></div>
     <div class="me">${CLOUD?'<span class="sync" id="sync" title="서버 저장 상태">저장됨</span>':''}<span class="idle" id="idleTxt"></span><span class="nm">${esc(u.name)} ${esc(e?(dutyOf(e)||posName(e.pos)):'')}</span><span class="role">${esc(roles)}</span><button id="out">로그아웃</button></div></header>
    <div class="shell"><nav class="side" aria-label="메뉴">${navHtml()}</nav><main class="main gut" id="main"></main></div>
-   <nav class="tabbar" aria-label="하단 메뉴">${visibleMenu().filter(x=>x.tab).map(x=>`<button data-v="${x.k}" class="${S.view===x.k?'on':''}"><i></i>${x.tab}</button>`).join('')}<button data-v="more" class="${S.view==='more'?'on':''}"><i></i>전체</button></nav>`;
+   <nav class="tabbar" aria-label="하단 메뉴">${visibleMenu().filter(x=>x.tab).sort((a,b)=>(a.tabo||9)-(b.tabo||9)).map(x=>`<button data-v="${x.k}" class="${S.view===x.k?'on':''}"><i></i>${x.tab}</button>`).join('')}<button data-v="more" class="${S.view==='more'?'on':''}"><i></i>더보기</button></nav>`;
   $$('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m; lsSet('ayon.mode',S.mode); renderApp()});
   bindNav(); $('#out').onclick=()=>{stopIdle(); logout('로그아웃했습니다.')};
   renderView(); clearInterval(window._it); window._it=setInterval(()=>{const el=$('#idleTxt'); if(!el)return; const s=Math.max(0,Math.ceil((lastSeen()+IDLE_MS()-Date.now())/1000)); if(s<=0&&S.user) return idleOut(); el.textContent=`자동 로그아웃 ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`},1000)}
@@ -1218,13 +1266,20 @@ VIEWS.user=el=>{ const tab=S.utab||'사용자'; const tabs=['사용자','역할'
   if(tab==='권한 부여'){ renderList('grant',el,{top,after:bind}); const add=$('#fadd',el); if(add) add.onclick=()=>grantForm(()=>VIEWS.user(el)); return }
   if(tab==='가입 승인'){ renderList('signup',el,{top,after:bind}); return }
   if(tab==='외부 초대'){ renderList('invite',el,{top,after:bind}); return }
-  const us=T('user');
+  /* v1.5.0 검색: 이름 · 아이디 · 부서 일부 + 역할 선택 (개인 · 부서로 받은 역할 모두) */
+  const uf=S.uf||(S.uf={q:'',r:''}), qq=uf.q.trim().toLowerCase();
+  const rolesOfU=u=>{const e=byId('emp',u.emp); const og=e?orgUp(e.org):[]; return [...(u.roles||[]),...T('grant').filter(g=>(g.tt==='부서'&&og.includes(g.tg))||(g.tt==='개인'&&g.tg===u.id)).map(g=>g.role)]};
+  const all=T('user'), us=all.filter(u=>{const e=byId('emp',u.emp); const hay=[u.id,u.name,e?empName(e.id):'',e?orgPath(e.org):''].join(' ').toLowerCase(); return (!qq||hay.includes(qq))&&(!uf.r||rolesOfU(u).includes(uf.r))});
   el.innerHTML=head('권한 관리','조직관리','임직원 계정은 직원 명부에 이메일이 있으면 처음 로그인 때 자동으로 생깁니다 (역할은 미리 정해 둔 대로). 여기서는 역할 부여, 사용 중지, 비밀번호 초기화를 합니다.')+top+
-  `<section class="panel"><div class="tw"><table class="t"><thead><tr><th>아이디</th><th>이름</th><th>소속</th><th>역할 (개인 부여)</th><th>부서로 받은 역할</th><th>최근 로그인</th><th class="c">상태</th><th></th></tr></thead><tbody>
+  `<div class="filters" style="margin:0 0 10px"><input id="ufq" type="search" placeholder="이름 · 아이디 · 부서 검색" value="${esc(uf.q)}" aria-label="이름 · 아이디 · 부서 검색" style="min-width:240px"><select id="ufr" aria-label="역할로 거르기"><option value="">전체 역할</option>${T('role').filter(r=>r.id!=='R-BASE').map(r=>`<option value="${r.id}" ${uf.r===r.id?'selected':''}>${esc(r.name)}</option>`).join('')}</select><span class="pmeta">${us.length} / ${all.length}명</span></div>
+  <section class="panel"><div class="tw"><table class="t"><thead><tr><th>아이디</th><th>이름</th><th>소속</th><th>역할 (개인 부여)</th><th>부서로 받은 역할</th><th>최근 로그인</th><th class="c">상태</th><th></th></tr></thead><tbody>
   ${us.map(u=>{const e=byId('emp',u.emp); const og=e?orgUp(e.org):[]; const dg=T('grant').filter(g=>g.tt==='부서'&&og.includes(g.tg)).map(g=>refName('role',g.role));
     return `<tr><td class="num nw"><b>${esc(u.id)}</b></td><td class="nw">${esc(e?empName(e.id):u.name)}</td><td style="font-size:12px">${e?esc(orgPath(e.org)):'외부'}</td><td style="font-size:12px">${(u.roles||[]).map(r=>`<span class="tag">${esc(refName('role',r))}</span>`).join(' ')||'-'}</td><td style="font-size:12px">${dg.map(x=>`<span class="tag">${esc(x)}</span>`).join(' ')||'-'}</td><td class="num" style="font-size:12px">${u.last||'-'}</td><td class="c">${pill(u.on?'사용':'사용 중지')}</td>
     <td class="nw">${can('user','수정')?`<button class="btn sm" data-ur="${u.id}">역할</button> <button class="btn sm" data-uo="${u.id}">${u.on?'사용 중지':'다시 사용'}</button> <button class="btn sm" data-up="${u.id}">비밀번호 초기화</button>`:''}</td></tr>`}).join('')}</tbody></table></div></section>`;
   bind();
+  const ufq=$('#ufq',el); ufq.oninput=()=>{uf.q=ufq.value; clearTimeout(S._uft); S._uft=setTimeout(()=>{VIEWS.user(el); const x=$('#ufq',el); if(x){x.focus(); x.setSelectionRange(x.value.length,x.value.length)}},200)};
+  $('#ufr',el).onchange=e=>{uf.r=e.target.value; VIEWS.user(el)};
+  if(!us.length) $('tbody',el).innerHTML='<tr><td colspan="8">조건에 맞는 사용자가 없습니다.</td></tr>';
   $$('[data-ur]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.ur); modal(`<h2>${esc(u.id)} 역할</h2><div class="ivs">${T('role').filter(r=>r.id!=='R-BASE').map(r=>`<label class="chkl" for="ro_${r.id}"><input type="checkbox" id="ro_${r.id}" value="${r.id}" ${(u.roles||[]).includes(r.id)?'checked':''}> ${esc(r.name)}</label>`).join('')}</div><p class="pmeta">기본 사용자 역할은 모든 계정에 자동으로 붙습니다.</p><div class="actions"><button type="button" class="btn" data-x>취소</button><button class="btn pri">저장</button></div>`,(f,d)=>f.onsubmit=e=>{e.preventDefault(); const nw=$$('input:checked',f).map(i=>i.value); if(u.id===S.user.id&&(u.roles||[]).includes('R-ADMIN')&&!nw.includes('R-ADMIN')){toast('자기 자신의 시스템 관리자 역할은 뺄 수 없습니다.');return} audit('user',u.id,'역할 변경',(u.roles||[]).map(x=>refName('role',x)).join(',')+' → '+nw.map(x=>refName('role',x)).join(',')); u.roles=nw; if(S.user.id===u.id)S.user.roles=nw; save(); d.remove(); VIEWS.user(el); toast('역할을 저장했습니다.')})});
   $$('[data-uo]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.uo); if(u.id===S.user.id) return toast('자기 계정은 중지할 수 없습니다.'); u.on=!u.on; audit('user',u.id,u.on?'다시 사용':'사용 중지'); save(); VIEWS.user(el); toast(u.on?'계정을 다시 사용합니다.':'계정을 중지했습니다. 로그인할 수 없습니다.')});
   $$('[data-up]',el).forEach(b=>b.onclick=()=>{const u=T('user').find(x=>x.id===b.dataset.up); if(u.id===S.user.id) return toast('본인 비밀번호는 다른 관리자에게 초기화를 요청하세요.');
@@ -1721,7 +1776,7 @@ const $=s=>document.querySelector(s);
 const devT=k=>DB?window.T(k):[];
 let WRAP=null, me=null, EMP=[], cur='report';
 /* 테스트 화면 키 → 개발기 메뉴 키 */
-const DEVK={report:'invrep',stock:'invstk',brand:'invbr',exp:'invexp',book:'invbook',day:'invbook',up:'invup',manual:'invup',cost:'invcost',adj:'invadj',po:'invpo',master:'invmst',ctl:'ctlabor',cts:'ctsupply',co:'ctco'};
+const DEVK={report:'invrep',stock:'invstk',brand:'invbook',etc:'invbook',exp:'invexp',book:'invbook',day:'invbook',up:'invup',manual:'invup',cost:'invpo',adj:'invadj',po:'invpo',master:'invmst',ctl:'ctlabor',cts:'ctsupply',co:'ctco'};
 const uid=e=>String(e&&e.em||'').split('@')[0].toLowerCase();
 const findU=v=>{const k=String(v||'').trim().toLowerCase().split('@')[0];return k?EMP.find(x=>uid(x)===k)||null:null};
 const teamOf=e=>({g:'',t:(e&&e.team)||'',p:''});
@@ -1731,8 +1786,11 @@ const RMAP={exec:'R-EXEC',lead:'R-LEAD',fin:'R-FIN',hr:'R-HR',inv:'R-INV',buy:'R
 const hasR=(...rs)=>{ if(!S.user) return false; const ids=myRoles().map(r=>r.id); return rs.some(r=>r==='view'||(r==='admin'?isAdmin():ids.includes(RMAP[r]))) };
 const canInv=()=>hasR('inv','admin'), canHR=()=>hasR('hr','admin'), canCost=()=>hasR('exec','lead','fin','admin'), canPrice=()=>hasR('fin','inv','admin');
 const canDL=()=>!!S.user&&can(DEVK[cur]||'invrep','엑셀');
-/* 한 메뉴 안의 탭 (매일 업로드: 이지어드민 | 지앤비 수기, 재고 수불부: 전체 | 품목 일별) */
-const ITABS={invup:[['up','이지어드민 업로드'],['manual','지앤비 수기 입력 · 상품 등록']],invbook:[['book','전체 품목'],['day','품목 일별']]};
+/* 한 메뉴 안의 탭 (v1.5): 매일 업로드 = 이지어드민 | 지앤비 수기, 입고 관리 = 발주 · 입고 | 단가 · 소비기한, 월간 수불 · 실적 = 재고 수불부 | 브랜드별 실적 | 기타출고
+   탭마다 원래 권한 키로 보임 여부를 정함 (입고 단가 = invcost, 브랜드별 실적 · 기타출고 = invbr) */
+const ITABS={invup:[['up','이지어드민 업로드'],['manual','지앤비 수기 입력 · 상품 등록']],invpo:[['po','발주 · 입고'],['cost','단가 · 소비기한']],invbook:[['book','재고 수불부'],['brand','브랜드별 실적'],['etc','기타출고']]};
+const TABPERM={up:'invup',manual:'invup',po:'invpo',cost:'invcost',book:'invbook',brand:'invbr',etc:'invbr'};
+const tabOk=t=>typeof canRaw==='function'?canRaw(TABPERM[t]||'invrep'):true;
 const ITAB={};
 function go(v){ const k=DEVK[v]||v; if(ITABS[k]){ ITAB[k]=v; if(WRAP&&S.view===k){ WRAP=null } } window.go(k) }
 function renderSide(){}
@@ -1775,9 +1833,29 @@ const coName=s=>CO[s]||String(s||'').replace(/^주식회사\s*/,'')||'(미지정
 const BRULE=[[/레딜제로|^z\d/,'레딜 제로'],[/레딜로/,'레딜로'],[/^n0\d|퓨리틱/,'NNT'],[/제타닉/,'제타닉'],[/레딜/,'레딜'],[/콱스/,'콱스'],[/올리블/,'올리블'],[/고운단/,'고운단'],[/미니디어|세라잇|클리네아/,'미니디어'],[/프레실버|싱크버디/,'데일리앤쿡'],[/네츄럴씨|네추럴씨|브이포뮬러/,'우먼셀렉'],[/마이독/,'마이독'],[/^아이|IGF|판토더마|키핑패치|지에프코드/,'아이하이'],[/덴티|덴치/,'덴티오스'],[/마이디데이|플로라필|퀘르민/,'마이디데이'],[/디라셀|라셀/,'디라셀'],[/토시딘/,'토시딘'],[/스웰릿/,'스웰릿'],[/라움종아리/,'라움']];
 const brandGuess=n=>{const t=String(n).replace(/\s/g,'');for(const [p,b] of BRULE)if(p.test(t))return b;return ''};
 
-let MV={},COST={},ITEM={},PO={},ADJ={},CNT={},BRO=null,CFG={safe:50,cover:60,over:180,lt:40,moq:1000,blt:{}},LOG=[],CALC={},MET={},T='',db=null,dl=null,DEMO=false,loaded=false;
+let MV={},COST={},ITEM={},PO={},ADJ={},CNT={},BRO=null,CFG={safe:30,cover:60,over:180,lt:30,moq:3000,unit:1,overPct:10,v15:1,blt:{},bsafe:{},bcover:{},bmoq:{},bunit:{}},CFG_UP=false,LOG=[],CALC={},MET={},T='',db=null,dl=null,DEMO=false,loaded=false;
+/* v1.5 기본값: 서버 설정에 v15 표시가 없으면 한 번만 새 기본값(리드타임 30 · 안전재고 30 · 최소 수량 3,000 · 주문 단위 1 · 확보 60 · 과잉 180 · 초과 입고 10%)으로 바꿈 */
+function cfgIn(d){ d=JSON.parse(JSON.stringify(d||{})); if(!d.v15){ Object.assign(d,{lt:30,safe:30,moq:3000,unit:1,cover:60,over:180,overPct:10,v15:1}); CFG_UP=true } return {...CFG,...d} }
+function cfgSave(){ if(!db)return Promise.resolve(); return db.collection('cfg').doc('main').set(JSON.parse(JSON.stringify(CFG))).catch(()=>alert('설정을 저장하지 못했습니다')) }
 const brandOf=k=>(ITEM[k]&&ITEM[k].brand)||brandGuess(MV[k]?.name)||'(미지정)';
-const ltOf=k=>+(ITEM[k]&&ITEM[k].lt)||+((CFG.blt||{})[brandOf(k)])||CFG.lt, moqOf=k=>+(ITEM[k]&&ITEM[k].moq)||CFG.moq, safeOf=k=>{const v=ITEM[k]&&ITEM[k].safe;return v!=null&&v!==''?+v:CFG.safe};
+/* 실적제외 브랜드: 모든 조회 · 실적 · 엑셀에서 빠지고 품목 기준정보에만 보임 */
+const EXB='실적제외', live=k=>brandOf(k)!==EXB;
+const iv_=(k,f)=>{const v=ITEM[k]&&ITEM[k][f];return v!=null&&v!==''&&isFinite(+v)?+v:null};
+const bv_=(k,f)=>{const v=(CFG[f]||{})[brandOf(k)];return v!=null&&v!==''&&isFinite(+v)?+v:null};
+/* 적용 순서: 품목 → 브랜드 → 기본값 */
+const ltOf=k=>iv_(k,'lt')??bv_(k,'blt')??CFG.lt, safeOf=k=>iv_(k,'safe')??bv_(k,'bsafe')??CFG.safe, coverOf=k=>iv_(k,'cover')??bv_(k,'bcover')??CFG.cover,
+ moqOf=k=>iv_(k,'moq')??bv_(k,'bmoq')??CFG.moq, unitOf=k=>Math.max(1,iv_(k,'unit')??bv_(k,'bunit')??(CFG.unit||1));
+/* 권장 발주량: 필요 수량을 주문 단위로 올림 → 최소 수량(MOQ)보다 작으면 최소 수량 */
+const sugQty=(need,k)=>{if(!(need>0))return 0;const u=unitOf(k);return Math.max(moqOf(k),Math.ceil(need/u)*u)};
+/* 금액 보기 · 단위 (원가 보는 역할만) */
+let VM='q',UNIT='원';try{VM=localStorage.getItem('ayon-vm')||'q';UNIT=localStorage.getItem('ayon-unit')||'원'}catch(e){}
+const UDIV={'원':1,'천원':1e3,'백만원':1e6};
+const amtMode=()=>canCost()&&VM==='a';
+const fA=v=>{if(v==null||!isFinite(v))return '–';const d=UDIV[UNIT]||1;return `<bdi title="${Math.round(v).toLocaleString('ko-KR')}원">${(v/d).toLocaleString('ko-KR',{maximumFractionDigits:d>=1e6?1:0})}</bdi>`};
+function vctl(){ const el=document.getElementById('vctl'); if(!el)return; if(!me||!canCost()){el.innerHTML='';return}
+ el.innerHTML=`<span class="seg vm" role="group" aria-label="수량 · 금액"><button type="button" class="b sm ${VM==='q'?'p':''}" data-vm="q" aria-pressed="${VM==='q'}">수량 보기</button><button type="button" class="b sm ${VM==='a'?'p':''}" data-vm="a" aria-pressed="${VM==='a'}">금액 보기</button></span><select id="unitSel" aria-label="금액 단위">${Object.keys(UDIV).map(u=>`<option ${u===UNIT?'selected':''}>${u}</option>`).join('')}</select>`;
+ el.querySelectorAll('[data-vm]').forEach(b=>b.onclick=()=>{VM=b.dataset.vm;try{localStorage.setItem('ayon-vm',VM)}catch(e){}vctl();render()});
+ el.querySelector('#unitSel').onchange=e=>{UNIT=e.target.value;try{localStorage.setItem('ayon-unit',UNIT)}catch(x){}render()};}
 const ST_MAP={'단종':'발주중단','폐기':'취급중단'};
 const stGuess=k=>!(ITEM[k]&&ITEM[k].status);
 const stOf=k=>{const v=ITEM[k]&&ITEM[k].status;if(v)return ST_MAP[v]||v;return /\s[xX]$/.test(MV[k]?.name||'')?'발주중단':'판매'};
@@ -1840,23 +1918,49 @@ function period(cc,from,to){
 const STL={gap:['품절 위험','s-urg',1],urg:['즉시 발주','s-urg',2],soon:['발주 임박','s-soon',3],ok:['정상','s-ok',5],over:['과잉','s-over',6],none:['미판매','s-none',7],zero:['재고 없음','s-none',8],hold:['발주중단','s-none',9],drop:['취급중단','s-none',10]};
 const stb=s=>`<span class="st ${STL[s][1]}">${STL[s][0]}</span>`;
 const STG={ok:['정상판매','s-ok'],disp:['처분','s-soon'],stop:['판매 금지','s-urg'],exp:['기한 경과','s-urg'],none:['소비기한 미입력','s-none']};
+/* ---- 발주 · 분할 입고 ----
+   발주 기록 {code,qty,ordD,inD(입고 예정일),lt(계획 리드타임),no,st:'예정'|'취소',rc:[{d,q,by,at}],close:{reason,by,at,d}}
+   상태는 입고 내역으로 계산: 예정 · 부분 입고 · 입고 완료 · 초과 입고 · 미납 종결 · 취소 */
+function poN(p){ const x={...p,rc:Array.isArray(p.rc)?p.rc.slice():[]};
+ if(!Array.isArray(p.rc)&&p.st==='입고 완료'){x.rc=[{d:p.inD||p.ordD,q:+p.qty||0,mig:1}];x.st='예정'}   /* v1.4 형식: 입고 완료 = 예정일에 1회 입고 */
+ x.rc.sort((a,b)=>String(a.d).localeCompare(String(b.d)));
+ x.got=x.rc.reduce((s,r)=>s+(+r.q||0),0); x.qty=+x.qty||0;
+ x.state=x.st==='취소'?'취소':x.close?'미납 종결':x.got===0?'예정':x.got<x.qty?'부분 입고':x.got===x.qty?'입고 완료':'초과 입고';
+ x.open=['예정','부분 입고'].includes(x.state); x.rest=x.open?Math.max(0,x.qty-x.got):0;
+ x.plt=x.lt!=null&&x.lt!==''?+x.lt:(x.ordD&&x.inD?diffS(x.ordD,x.inD):null);
+ x.lt1=x.rc.length&&x.ordD?diffS(x.ordD,x.rc[0].d):null;
+ x.ltN=!x.open&&x.rc.length&&x.ordD?diffS(x.ordD,x.rc[x.rc.length-1].d):null;
+ x.late=x.open&&x.inD&&T&&x.inD<T; return x }
+const PO_ST={'예정':'s-soon','부분 입고':'s-over','입고 완료':'s-ok','초과 입고':'s-ok','미납 종결':'s-none','취소':'s-none'};
+const poList=()=>Object.entries(PO).map(([id,p])=>({id,...poN(p)}));
+/* 품목별 실제 리드타임: 최근 3건(완료 리드타임, 없으면 첫 입고 리드타임) 평균 */
+function realLt(k){ const L=poList().filter(p=>p.code===k&&p.rc.length&&!p.rc[0].mig).sort((a,b)=>String(b.ordD).localeCompare(String(a.ordD))).slice(0,3).map(p=>p.ltN??p.lt1).filter(v=>v!=null);
+ return L.length?L.reduce((a,b)=>a+b,0)/L.length:null }
+
+/* 일평균 · 발주 권고 · 소비기한
+   일평균 = 최근 28일 배송 출고 ÷ 판매 가능한 날 (하루 종일 재고 0이던 날 제외 · 신규 품목은 실제 날수) · 기타출고(퀵 · 샘플)는 넣지 않음 */
+const TRD={up:['↑','증가','s-over'],flat:['→','보합','s-none'],down:['↓','감소','s-soon']};
 function metrics(k){
  const c=CALC[k], D=c.days, map={}; D.forEach(x=>map[x.d]=x);
  const last=D.length?D[D.length-1]:null; const qty=last?last.eq:c.open.q, amt=last?last.ea:c.open.a;
  const start=addS(T,-27); let st0=c.open.q; for(const x of D){if(x.d<start)st0=x.eq;else break}
- let sum=0,hist=[],wk=[0,0,0,0];
- for(let i=0;i<28;i++){ const d=addS(start,i), x=map[d], sale=x?x.sq+x.oq:0; sum+=sale; wk[3-Math.floor(i/7)]+=sale; hist.push({d,sale}); }
- const avg=sum/28, w=wk.map(v=>v/7), avg7=w[0], trend=avg>0?(w[0]/avg-1):0;
- const pos=Object.values(PO).filter(p=>p.code===k&&p.st==='예정'), inq=pos.reduce((s,p)=>s+(+p.qty||0),0);
- const inD=pos.map(p=>p.inD).filter(Boolean).sort()[0]||'';
- const lt=ltOf(k), moq=moqOf(k), safe=safeOf(k), stt=stOf(k);
- let st,left=null,leftIn=null,ordD='',sug=0;
+ const born=MV[k].first&&MV[k].first>start?MV[k].first:start;
+ let sum=0,hist=[],wk=[0,0,0,0],wd=[0,0,0,0],avail=0,run=st0;
+ for(let i=0;i<28;i++){ const d=addS(start,i), x=map[d], sale=x?x.sq:0, b=x?x.bq:run, e=x?x.eq:run; run=e;
+  const ok=d>=born&&(b>0||e>0||sale>0); if(ok){avail++;wd[3-Math.floor(i/7)]++}
+  sum+=sale; wk[3-Math.floor(i/7)]+=sale; hist.push({d,sale,oq:x?x.oq:0,ok}); }
+ const avg=avail?sum/Math.max(avail,7):0, w=wk.map((v,i)=>wd[i]?v/wd[i]:0), avg7=w[0];
+ const trend=avg>0&&wd[0]?(w[0]/avg-1):0, tr=avg<=0?'flat':trend>=.15?'up':trend<=-.15?'down':'flat';
+ const pos=poList().filter(p=>p.code===k&&p.open), inq=pos.reduce((s,p)=>s+p.rest,0);
+ const inD=pos.map(p=>p.inD).filter(Boolean).sort()[0]||'', late=pos.filter(p=>p.late).length;
+ const lt=ltOf(k), moq=moqOf(k), unit=unitOf(k), safe=safeOf(k), cover=coverOf(k), stt=stOf(k);
+ let st,left=null,leftIn=null,ordD='',sug=0,need=0;
  if(stt==='취급중단')st='drop';
  else if(stt==='발주중단'){st='hold';if(avg>0)left=Math.max(qty,0)/avg}
  else if(avg===0)st=qty>0?'none':'zero';
  else{ left=Math.max(qty,0)/avg; leftIn=(Math.max(qty,0)+inq)/avg; const off=Math.floor(leftIn-lt-safe); ordD=addS(T,off);
   if(inq>0&&inD&&diffS(T,inD)>left)st='gap'; else if(off<=0)st='urg'; else if(off<=7)st='soon'; else if(left>CFG.over)st='over'; else st='ok';
-  const need=avg*(lt+safe+CFG.cover)-(Math.max(qty,0)+inq); if(need>0&&['gap','urg','soon'].includes(st))sug=Math.ceil(need/moq)*moq; }
+  need=avg*(lt+safe+cover)-(Math.max(qty,0)+inq); if(need>0&&['gap','urg','soon'].includes(st))sug=sugQty(need,k); }
  // 소비기한 건
  let cum=0; const lots=c.layers.filter(l=>l.q>0).map(l=>{ cum+=l.q; const ind=l.ind, e=l.e;
   if(!e)return {...l,stage:'none',d1:'',d2:'',risk:''};
@@ -1864,13 +1968,18 @@ function metrics(k){
   const stage=T>e?'exp':T<=d1?'ok':T<=d2?'disp':'stop'; const out=avg>0?addS(T,Math.ceil(cum/avg)):'';
   let risk=''; if(stage==='ok'&&(!out||out>d1))risk='정상판매 기간 내 판매 어려움'; if(stage==='disp'&&(!out||out>d2))risk='처분 기간 내 판매 어려움';
   return {...l,stage,d1,d2,out,risk,left:diffS(T,e)}; });
- return {k,qty,amt,u:last?last.u:c.open.u,avg,avg7,w,safe,trend,hist,inq,inD,lt,moq,left,leftIn,ordD,sug,st,lots,neg:D.some(x=>x.neg),bad:D.filter(x=>x.given!=null&&x.eq!==x.given).length};
+ /* 소비기한 초과 위험: 권장 발주량을 다 파는 날수 > 정상판매 기간(최근 입고 3건 소비기한의 1/3) */
+ let expW='';{ const cc=COST[k]||{}, E=[]; for(const d of Object.keys(cc.e||{}).sort().reverse()){const v=cc.e[d];const e=Array.isArray(v)?(v.find(x=>x.e)||{}).e:v;if(e&&e>d)E.push(diffS(d,e));if(E.length>=3)break}
+  if(sug&&avg>0&&E.length){const nd=Math.floor(E.reduce((a,b)=>a+b,0)/E.length/3);if(sug/avg>nd)expW=`권장량 판매에 ${f0(sug/avg)}일 · 정상판매 ${nd}일`} }
+ const rl=realLt(k);
+ return {k,qty,amt,u:last?last.u:c.open.u,avg,avg7,w,safe,cover,unit,trend,tr,hist,inq,inD,late,lt,rl,moq,left,leftIn,ordD,sug,need,st,lots,expW,neg:D.some(x=>x.neg),bad:D.filter(x=>x.given!=null&&x.eq!==x.given).length};
 }
 let rcT=null;function schedRecalc(){clearTimeout(rcT);rcT=setTimeout(recalc,120)}
 function recalc(){ clearTimeout(rcT);
  T=lastDate(); CALC={}; MET={}; BRO=null;
  for(const k in MV)CALC[k]=fifo(k);
- if(T)for(const k in MV)MET[k]=metrics(k);
+ if(T)for(const k in MV)if(live(k))MET[k]=metrics(k);
+ if(CFG_UP&&me&&canInv()){CFG_UP=false;cfgSave()}
  renderSide(); softRender();
 }
 const md=x=>`${+x.slice(5,7)}/${+x.slice(8)}`;
@@ -1880,16 +1989,16 @@ const AVH=dk=>`<th class="n"${dk?' data-k="avg"':''}>28일 일평균<br><span cl
 const ordCell=d=>!d?'–':d<=T?`<span class="st s-urg">지금</span>${d<T?` <span class="note">${f0(diffS(d,T))}일 늦음</span>`:''}`:d;
 function lastDate(){let m='',a='';for(const k in MV)for(const d in MV[k].rows||{}){if(d>a)a=d;if(MV[k].src!=='manual'&&d>m)m=d}return m||a}
 function firstDate(){let m='';for(const k in MV)for(const d in MV[k].rows||{})if(!m||d<m)m=d;return m}
-function missInfo(){let co=0,ce=0;for(const k in CALC){const c=CALC[k],cc=COST[k]||{};if(c.open.q!==0){if(cc.open==null)co++}for(const x of c.days)if(x.iq>0){if(cc.r?.[x.d]==null)co++;if(!cc.e?.[x.d])ce++}}return {co,ce}}
+function missInfo(f){let co=0,ce=0;for(const k in CALC){if(!live(k)||(f&&!f(k)))continue;const c=CALC[k],cc=COST[k]||{};if(c.open.q!==0){if(cc.open==null)co++}for(const x of c.days)if(x.iq>0){if(cc.r?.[x.d]==null)co++;if(!cc.e?.[x.d])ce++}}return {co,ce}}
 
 /* 공통 UI */
 const isRow=k=>!!MV[k];
-const coList=()=>[...new Set(Object.keys(MV).map(k=>coName(MV[k].sup)))].sort();
+const coList=()=>[...new Set(Object.keys(MV).filter(live).map(k=>coName(MV[k].sup)))].sort();
 function brOrder(){ if(BRO)return BRO; const sale={};for(const k in MV){const b=brandOf(k);sale[b]=(sale[b]||0)+(MET[k]?MET[k].avg:0)}
  const all=Object.keys(sale), base=(CFG.border||[]).filter(b=>all.includes(b)), rest=all.filter(b=>!base.includes(b)).sort((a,b)=>sale[b]-sale[a]||a.localeCompare(b,'ko'));
  BRO=base.concat(rest); return BRO; }
 const brIdx=b=>{const i=brOrder().indexOf(b);return i<0?999:i};
-const brList=()=>brOrder();
+const brList=()=>brOrder().filter(b=>b!==EXB);
 /* 소비기한 값: '날짜' 또는 [{q,e}] (한 입고를 수량별로 나눔) */
 function expSplit(v,q){ if(Array.isArray(v)){ const L=v.filter(x=>x&&+x.q>0).map(x=>({q:+x.q,e:x.e||null})).sort((a,b)=>String(a.e||'9').localeCompare(String(b.e||'9'))); let s=0; const out=[]; for(const x of L){ if(s>=q)break; const k=Math.min(x.q,q-s); out.push({q:k,e:x.e}); s+=k; } if(s<q)out.push({q:q-s,e:null}); return out; } return [{q,e:v||null}]; }
 const expTxt=v=>Array.isArray(v)?v.map(x=>`${x.e||'미입력'} ${f0(x.q)}개`).join(' / '):(v||'');
@@ -1903,7 +2012,7 @@ function sortRows(tbl,key,rows,redraw){
  return rows;
 }
 const needData=()=>{ if(T)return false; $('#invRoot').innerHTML=`<h2>데이터가 아직 없습니다</h2><p class="desc">재고관리 › 매일 업로드에서 이지어드민 재고수불부 엑셀을 먼저 올려 주세요.</p><button class="b p" onclick="go('up')">매일 업로드로 이동</button>`; return true };
-const head=(t,d)=>`<h2>${t}</h2><p class="desc">${d}</p>${DEMO?'<span class="ex">예시 값 보기 중: 비어 있는 단가 · 소비기한을 화면에서만 임의로 채웠습니다 (저장 안 됨)</span>':''}`;
+const head=(t,d,info)=>`<h2>${t}</h2><p class="desc">${d}</p>${info?infoBox(info):''}`;
 async function saveX(name,sheets,o={}){
  if(!canDL()){alert('엑셀 다운로드 권한이 없습니다.');return}
  if(!canCost()&&!(o.price&&canPrice())){for(const k in sheets){const A=sheets[k],keep=A[0].map((h,i)=>!/금액|원가|단가/.test(String(h)));sheets[k]=A.map(r=>r.filter((_,i)=>keep[i]))}}
@@ -1913,75 +2022,132 @@ async function saveX(name,sheets,o={}){
  else XLSX.writeFile(wb,name);
 }
 
-/* ---------- 일일 리포트 ---------- */
+/* ---------- 공통 (v1.5) ---------- */
+const fV=v=>v==null||!isFinite(v)?'–':v<10&&v>0?f1(v):f0(v);   /* 일평균: 10 미만은 소수 한 자리 */
+const trB=m=>m.avg>0?`<span class="tr ${TRD[m.tr][2]}" title="${TRD[m.tr][1]} · 최근 7일 ${fV(m.w[0])} / 28일 ${fV(m.avg)}">${TRD[m.tr][0]}</span>`:'';
+const qtyOf=k=>{const c=CALC[k];if(!c)return 0;const D=c.days;return D.length?D[D.length-1].eq:c.open.q};
+const todayK=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+/* 업로드 빠짐: 마지막 이지어드민 일자 다음 날 ~ 어제 중 평일 (주말은 월요일에 묶어서 올려도 됨) */
+function upGap(){ if(!T)return []; const y=addS(todayK(),-1), out=[]; for(let d=addS(T,1);d<=y;d=addS(d,1)){const w=new Date(d+'T00:00:00Z').getUTCDay();if(w!==0&&w!==6)out.push(d)} return out }
+const gapMsg=()=>{const g=upGap();return g.length?`<div class="msg s-urg" style="margin:0 0 10px">업로드 빠짐: 이지어드민 수불이 <b>${g.length===1?md(g[0]):md(g[0])+' ~ '+md(g[g.length-1])+' ('+g.length+'일)'}</b> 비어 있습니다 (마지막 ${T}). <a href="#" data-to="up">매일 업로드</a></div>`:''};
+const infoBox=t=>`<details class="info"><summary>ⓘ 계산 기준</summary><div>${t}</div></details>`;
+const nmL=k=>`<a href="#" data-item="${esc(k)}">${esc(MV[k]?.name||k)}</a>`;
+const brItem=k=>`<span class="note">${esc(brandOf(k))}</span><br>${nmL(k)} <span class="note">${esc(k)}</span>`;
+const inCell=m=>m.inq?`${f0(m.inq)}<br><span class="note">${m.inD}${m.late?' · <b style="color:var(--red)">지연</b>':''}</span>`:'–';
+const sugCell=m=>m.sug?`<a href="#" data-po="${esc(m.k)}" title="입고 관리 › 발주 등록"><b>${f0(m.sug)}</b></a>${m.expW?` <span class="st s-soon" title="${esc(m.expW)}">소비기한</span>`:''}`:'–';
+const leftCell=m=>m.leftIn==null?(m.left==null?'–':f0(m.left)+'일'):f0(m.leftIn)+'일';
+/* 화면 이동 링크 */
+document.addEventListener('click',e=>{
+ const it=e.target.closest('a[data-item]'); if(it){e.preventDefault();openItem(it.dataset.item);return}
+ const po=e.target.closest('a[data-po]'); if(po){e.preventDefault();const m=MET[po.dataset.po];poPre={code:po.dataset.po,qty:m?(m.sug||m.moq):''};go('po');return}
+ const to=e.target.closest('a[data-to]'); if(!to)return; e.preventDefault(); const v=to.dataset.to;
+ if(v==='stock'){sF={...sF,sts:to.dataset.st?[to.dataset.st]:[],q:''}} if(v==='master'){mF={...mF,tab:'item',st:to.dataset.st||'',q:''}} if(v==='po'){poF={...poF,st:to.dataset.st||'open'}}
+ go(v)});
+
+/* ---------- 오늘 할 일 (일일 리포트) ---------- */
 let repF={co:'',br:''};
 function vReport(){ if(needData())return;
- const M=Object.values(MET).filter(m=>m.st!=='drop'&&(!repF.co||coName(MV[m.k].sup)===repF.co)&&(!repF.br||brandOf(m.k)===repF.br)), g=s=>M.filter(m=>m.st===s);
+ const okF=k=>(!repF.co||coName(MV[k].sup)===repF.co)&&(!repF.br||brandOf(k)===repF.br);
+ const M=Object.values(MET).filter(m=>m.st!=='drop'&&okF(m.k)), g=s=>M.filter(m=>m.st===s);
  const need=g('gap').concat(g('urg'),g('soon'));
+ const P=poList().filter(p=>p.open&&MET[p.code]&&okF(p.code)), late=P.filter(p=>p.late), soonIn=P.filter(p=>!p.late&&p.inD&&diffS(T,p.inD)<=14).sort((a,b)=>String(a.inD).localeCompare(String(b.inD)));
  const lots=M.flatMap(m=>m.lots.map(l=>({...l,k:m.k})));
  const disp=lots.filter(l=>l.stage==='disp'), stop=lots.filter(l=>['stop','exp'].includes(l.stage)), risk=lots.filter(l=>l.risk);
- const mi=missInfo(), amt=M.reduce((s,m)=>s+m.amt,0), unk=M.filter(m=>m.u&&m.qty>0).length;
- const neg=M.filter(m=>m.qty<0);
- const nm=k=>`<a href="#" data-go="${esc(k)}">${esc(MV[k].name)}</a>`;
- $('#invRoot').innerHTML=head(`일일 재고 리포트 · ${T}`,`이지어드민 ${T} 마감 수불 기준 · 판매량 = 배송(판매출고) + 출고(기타출고) · 재고보유일수 = 현재고 ÷ 최근 28일 일평균 · 주별 일평균은 7일 단위 기간의 하루 평균 · 기본 리드타임 ${CFG.lt}일 · 안전재고 ${CFG.safe}일`)+`
+ const mi=missInfo(okF), amt=M.reduce((s,m)=>s+m.amt,0), unk=M.filter(m=>m.u&&m.qty>0).length, neg=M.filter(m=>m.qty<0);
+ const nob=Object.keys(MV).filter(k=>live(k)&&okF(k)&&brandOf(k)==='(미지정)').length, ltS=M.filter(m=>m.rl>0&&Math.abs(m.rl-m.lt)>=7).length;
+ $('#invRoot').innerHTML=head(`오늘 할 일 · ${T}`,`이지어드민 ${T} 마감 기준 · 할 일을 누르면 해당 화면으로 갑니다`,`판매량(일평균)은 <b>배송 출고만</b>으로, 최근 28일 중 재고가 있던 날로 나눕니다 (하루 종일 재고 0인 날 제외 · 신규 품목은 실제 날수 · 최소 7일). 기타출고(퀵 · 샘플)는 재고에서는 빠지지만 일평균에는 넣지 않습니다.<br>발주 권고일 = 오늘 + (현재고 + 입고 예정) ÷ 일평균 − 리드타임 − 안전재고. 권장 발주량 = 일평균 × (리드타임 + 안전재고 + 확보일수) − (현재고 + 입고 예정)을 주문 단위로 올리고, 최소 수량보다 작으면 최소 수량.<br>기본값: 리드타임 ${CFG.lt}일 · 안전재고 ${CFG.safe}일 · 확보일수 ${CFG.cover}일 · 최소 수량 ${f0(CFG.moq)} · 주문 단위 ${f0(CFG.unit||1)} (품목 → 브랜드 → 기본값 순)`)+gapMsg()+`
+ <div class="filters"><select id="rpCo" aria-label="법인">${opt(coList(),repF.co,'전체 법인')}</select><select id="rpBr" aria-label="브랜드">${opt(brList(),repF.br,'전체 브랜드')}</select></div>
  <div class="kpis">
-  <div class="kpi cst"><span>재고 금액 (선입선출)</span><b>${fM(amt)}<small> 원</small></b>${unk?`<em class="note">원가 미확정 ${unk}품목 포함</em>`:''}</div>
   <div class="kpi"><span>품절 위험 · 즉시 발주</span><b style="color:var(--red)">${g('gap').length+g('urg').length}</b></div>
   <div class="kpi"><span>발주 임박 (7일 내)</span><b style="color:var(--amb)">${g('soon').length}</b></div>
-  <div class="kpi"><span>소비기한 처분 · 판매 금지</span><b style="color:var(--amb)">${disp.length} · ${stop.length}<small> 건</small></b><em class="note" style="color:var(--mut)">${f0(disp.reduce((s,l)=>s+l.q,0))} · ${f0(stop.reduce((s,l)=>s+l.q,0))}개</em></div>
-  <div class="kpi"><span><span class="cst">원가 · </span>소비기한 미입력</span><b style="color:${mi.co+mi.ce?'var(--amb)':'inherit'}"><span class="cst">${mi.co} · </span>${mi.ce}<small> 건</small></b></div>
-  <div class="kpi"><span>마이너스 재고 품목</span><b style="color:${neg.length?'var(--red)':'inherit'}">${neg.length}</b></div>
+  <div class="kpi"><span>입고 지연 · 14일 내 입고</span><b><span style="color:${late.length?'var(--red)':'inherit'}">${late.length}</span> · ${soonIn.length}</b></div>
+  <div class="kpi"><span><span class="cstp">단가 · </span>소비기한 미입력</span><b style="color:${mi.co+mi.ce?'var(--amb)':'inherit'}"><span class="cstp">${mi.co} · </span>${mi.ce}<small> 건</small></b></div>
+  <div class="kpi"><span>소비기한 처분 · 판매 금지</span><b style="color:var(--amb)">${disp.length} · ${stop.length}<small> 건</small></b></div>
+  <div class="kpi cst"><span>재고 금액 (선입선출, ${UNIT})</span><b>${fA(amt)}</b>${unk?`<em class="note">원가 미확정 ${unk}품목 포함</em>`:''}</div>
  </div>
- <div class="panel"><h3>① 발주 필요 <span class="note">${need.length}품목 · 브랜드 순 · 일평균은 판매량(배송 + 출고) 주별</span></h3>${need.length?`<div class="tbl tall"><table data-sb="1"><thead><tr><th>상태</th><th>품목</th><th class="n">현재고</th><th class="n">입고 예정</th>${WKH()}${AVH()}<th class="n">재고보유일수</th><th class="n">리드타임</th><th>발주 권고일</th><th class="n">권장 발주량</th></tr></thead><tbody>${(()=>{let pb=null;return need.sort((a,b)=>brIdx(brandOf(a.k))-brIdx(brandOf(b.k))||STL[a.st][2]-STL[b.st][2]||a.leftIn-b.leftIn).map(m=>{const br=brandOf(m.k),hd=br!==pb?`<tr class="grp"><td colspan="13">${esc(br)} <span class="note">${need.filter(x=>brandOf(x.k)===br).length}품목</span></td></tr>`:'';pb=br;return hd+`<tr><td>${stb(m.st)}</td><td>${nm(m.k)}</td><td class="n">${f0(m.qty)}</td><td class="n">${m.inq?f0(m.inq)+`<br><span class="note">${m.inD}</span>`:'–'}</td>${m.w.map(v=>`<td class="n wk">${v?f0(v):'–'}</td>`).join('')}<td class="n"><b>${f0(m.avg)}</b></td><td class="n">${f0(m.left)}일</td><td class="n">${m.lt}일</td><td>${ordCell(m.ordD)}</td><td class="n"><b>${f0(m.sug)}</b></td></tr>`}).join('')})()}</tbody></table></div>`:'<p class="note">발주가 필요한 품목이 없습니다.</p>'}</div>
+ <div class="panel"><h3>① 발주 필요 <span class="note">${need.length}품목 · 브랜드 순</span></h3>${need.length?`<div class="tbl tall mh"><table data-sb="1"><thead><tr><th>상태</th><th>브랜드 · 품목</th><th class="n">현재고</th><th class="n">입고 예정</th><th class="n">일평균 · 추세</th><th class="n">보유일수</th><th>발주 권고일</th><th class="n">권장 발주량</th></tr></thead><tbody>${(()=>{let pb=null;return need.sort((a,b)=>brIdx(brandOf(a.k))-brIdx(brandOf(b.k))||STL[a.st][2]-STL[b.st][2]||a.leftIn-b.leftIn).map(m=>{const br=brandOf(m.k),hd=br!==pb?`<tr class="grp"><td colspan="8">${esc(br)} <span class="note">${need.filter(x=>brandOf(x.k)===br).length}품목</span></td></tr>`:'';pb=br;return hd+`<tr><td>${stb(m.st)}</td><td>${nmL(m.k)} <span class="note">${esc(m.k)}</span></td><td class="n">${f0(m.qty)}</td><td class="n">${inCell(m)}</td><td class="n"><b>${fV(m.avg)}</b> ${trB(m)}</td><td class="n">${leftCell(m)}</td><td>${ordCell(m.ordD)}</td><td class="n">${sugCell(m)}</td></tr>`}).join('')})()}</tbody></table></div>${mCards(need)}`:'<p class="note">발주가 필요한 품목이 없습니다.</p>'}</div>
  <div class="grid2">
- <div class="panel"><h3>② 소비기한 <span class="note">처분 ${disp.length} · 판매 금지 ${stop.length} · 기한 내 판매 어려움 ${risk.length}건</span></h3>${stop.concat(disp,risk.filter(l=>l.stage==='ok')).length?`<div class="tbl"><table data-sb="1"><thead><tr><th>단계</th><th>품목</th><th>입고</th><th>소비기한</th><th class="n">수량</th><th>위험</th></tr></thead><tbody>${stop.concat(disp,risk.filter(l=>l.stage==='ok')).slice(0,15).map(l=>`<tr><td><span class="st ${STG[l.stage][1]}">${STG[l.stage][0]}</span></td><td>${nm(l.k)}</td><td>${esc(l.d==='기초'?'기초':l.ind)}</td><td>${l.e||''}</td><td class="n">${f0(l.q)}</td><td>${l.risk?`<span class="st s-soon">${l.risk}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<p class="note">${mi.ce?'소비기한이 입력된 건 중 위험한 것이 없습니다. 미입력 '+mi.ce+'건은 입고 단가 · 소비기한에서 채워 주세요.':'위험한 건이 없습니다.'}</p>`}</div>
+ <div class="panel"><h3>② 입고 지연 · 예정 <span class="note">지연 ${late.length} · 14일 내 ${soonIn.length}건</span></h3>${late.concat(soonIn).length?`<div class="tbl"><table data-sb="1"><thead><tr><th>상태</th><th>품목</th><th>입고 예정일</th><th class="n">남은 수량</th><th></th></tr></thead><tbody>${late.concat(soonIn).slice(0,20).map(p=>`<tr><td>${p.late?'<span class="st s-urg">입고 지연</span>':`<span class="st ${PO_ST[p.state]}">${p.state}</span>`}</td><td>${nmL(p.code)}</td><td>${p.inD}${p.late?` <span class="note">${diffS(p.inD,T)}일 지남</span>`:''}</td><td class="n">${f0(p.rest)}</td><td><a href="#" data-to="po" data-st="open">입고 확정</a></td></tr>`).join('')}</tbody></table></div>`:'<p class="note">지연되거나 곧 들어올 입고가 없습니다.</p>'}</div>
+ <div class="panel"><h3>③ 소비기한 <span class="note">처분 ${disp.length} · 판매 금지 ${stop.length} · 기한 내 판매 어려움 ${risk.length}건</span></h3>${stop.concat(disp,risk.filter(l=>l.stage==='ok')).length?`<div class="tbl"><table data-sb="1"><thead><tr><th>단계</th><th>품목</th><th>소비기한</th><th class="n">수량</th></tr></thead><tbody>${stop.concat(disp,risk.filter(l=>l.stage==='ok')).slice(0,12).map(l=>`<tr><td><span class="st ${STG[l.stage][1]}">${STG[l.stage][0]}</span>${l.risk?' ⚠':''}</td><td>${nmL(l.k)}</td><td>${l.e||''}</td><td class="n">${f0(l.q)}</td></tr>`).join('')}</tbody></table></div><p class="note"><a href="#" data-to="exp">소비기한 관리에서 전체 보기</a></p>`:`<p class="note">${mi.ce?'위험한 건이 없습니다. 미입력 '+mi.ce+'건은 입고 관리 › 단가 · 소비기한에서 채워 주세요.':'위험한 건이 없습니다.'}</p>`}</div>
  </div>
  <div class="grid2">
- <div class="panel"><h3>③ 법인별 재고<span class="cst"> 금액</span></h3><div class="tbl"><table data-sb="1"><thead><tr><th>법인</th><th class="n">품목</th><th class="n">수량</th><th class="n cst">금액 (원)</th><th class="cst" style="width:35%"></th></tr></thead><tbody>${(()=>{const G={};M.forEach(m=>{const c=coName(MV[m.k].sup);G[c]=G[c]||{n:0,q:0,a:0};G[c].n++;G[c].q+=m.qty;G[c].a+=m.amt});const mx=Math.max(...Object.values(G).map(x=>x.a),1);return Object.entries(G).sort((a,b)=>b[1].a-a[1].a).map(([c,x])=>`<tr><td>${esc(c)}</td><td class="n">${x.n}</td><td class="n">${f0(x.q)}</td><td class="n cst">${fM(x.a)}</td><td class="cst"><div class="bar"><i style="width:${Math.max(0,x.a/mx*100)}%"></i></div></td></tr>`).join('')})()}</tbody></table></div></div>
- <div class="panel"><h3>④ 미판매 · 과잉 · 확인 필요</h3><ul class="rl">${g('none').filter(m=>m.qty>0).sort((a,b)=>b.amt-a.amt).slice(0,6).map(m=>`<li>${stb('none')} ${nm(m.k)} — 재고 ${f0(m.qty)}개, 28일 출고 없음</li>`).join('')}${g('over').sort((a,b)=>b.left-a.left).slice(0,6).map(m=>`<li>${stb('over')} ${nm(m.k)} — ${f0(m.left)}일분</li>`).join('')}${neg.slice(0,6).map(m=>`<li><span class="st s-urg">마이너스</span> ${nm(m.k)} — 현재고 ${f0(m.qty)}개 <a href="#" data-adj="${esc(m.k)}">재고 조정</a></li>`).join('')}</ul></div>
+ <div class="panel"><h3>④ 확인 필요</h3><ul class="rl">
+  ${mi.co+mi.ce?`<li><a href="#" data-to="cost"><span class="cstp">단가 ${mi.co} · </span>소비기한 ${mi.ce}건 미입력</a></li>`:''}
+  ${neg.length?`<li><span class="st s-urg">마이너스</span> <a href="#" data-to="adj">마이너스 재고 ${neg.length}품목 → 재고 조정</a></li>`:''}
+  ${nob?`<li><a href="#" data-to="master" data-st="nob">브랜드 미지정 ${nob}품목 → 품목 기준정보</a></li>`:''}
+  ${ltS?`<li><a href="#" data-to="po" data-st="lt">실제 리드타임이 기준과 7일 이상 다른 품목 ${ltS}개</a></li>`:''}
+  <li>${stb('none')} <a href="#" data-to="stock" data-st="none">미판매 ${g('none').filter(m=>m.qty>0).length}품목</a> · ${stb('over')} <a href="#" data-to="stock" data-st="over">과잉 ${g('over').length}품목</a></li></ul></div>
+ <div class="panel cst"><h3>⑤ 법인별 재고 금액 <span class="note">${UNIT}</span></h3><div class="tbl"><table data-sb="1"><thead><tr><th>법인</th><th class="n">품목</th><th class="n">수량</th><th class="n">금액</th><th style="width:30%"></th></tr></thead><tbody>${(()=>{const G={};M.forEach(m=>{const c=coName(MV[m.k].sup);G[c]=G[c]||{n:0,q:0,a:0};G[c].n++;G[c].q+=m.qty;G[c].a+=m.amt});const mx=Math.max(...Object.values(G).map(x=>x.a),1);return Object.entries(G).sort((a,b)=>b[1].a-a[1].a).map(([c,x])=>`<tr><td>${esc(c)}</td><td class="n">${x.n}</td><td class="n">${f0(x.q)}</td><td class="n">${fA(x.a)}</td><td><div class="bar"><i style="width:${Math.max(0,x.a/mx*100)}%"></i></div></td></tr>`).join('')})()}</tbody><tfoot><tr><td>합계</td><td class="n">${M.length}</td><td class="n">${f0(M.reduce((s,m)=>s+m.qty,0))}</td><td class="n">${fA(amt)}</td><td></td></tr></tfoot></table></div></div>
  </div>
- <div style="display:flex;gap:8px"><button class="b" id="repX">리포트 엑셀 다운로드</button></div>`;
- $('#invRoot h2').insertAdjacentHTML('afterend',`<div class="filters" style="margin-top:8px"><select id="rpCo" aria-label="법인">${opt(coList(),repF.co,'전체 법인')}</select><select id="rpBr" aria-label="브랜드">${opt(brList(),repF.br,'전체 브랜드')}</select>${repF.co||repF.br?`<span class="note">${esc([repF.co,repF.br].filter(Boolean).join(' · '))} 만 보는 중</span>`:''}</div>`);
+ <div style="display:flex;gap:8px"><button class="b" id="repX">엑셀 다운로드</button></div>`;
  $('#rpCo').onchange=e=>{repF.co=e.target.value;vReport()};$('#rpBr').onchange=e=>{repF.br=e.target.value;vReport()};
- $('#repX').onclick=()=>saveX(`일일재고리포트_${T}.xlsx`,{'발주 필요':[['상태','브랜드','상품코드','품목','법인','현재고','입고예정','입고예정일',...[0,1,2,3].map(i=>'일평균 '+WR(i)),'28일 일평균 '+WR(4),'재고보유일수','리드타임','발주권고일','권장발주량'],...need.map(m=>[STL[m.st][0],brandOf(m.k),m.k,MV[m.k].name,coName(MV[m.k].sup),m.qty,m.inq,m.inD,...m.w.map(v=>Math.round(v)),Math.round(m.avg),Math.round(m.left),m.lt,m.ordD,m.sug])],'소비기한':[['단계','상품코드','품목','입고','소비기한','수량','위험'],...stop.concat(disp,risk).map(l=>[STG[l.stage][0],l.k,MV[l.k].name,l.ind,l.e,l.q,l.risk])]});
+ $('#repX').onclick=()=>{const S={'발주 필요':[['상태','브랜드','상품코드','품목','법인','현재고','입고예정','입고예정일','배송 일평균(28일)','추세','보유일수(입고예정 포함)','리드타임','안전재고','확보일수','최소수량','주문단위','발주권고일','권장발주량','소비기한 경고'],...need.map(m=>[STL[m.st][0],brandOf(m.k),m.k,MV[m.k].name,coName(MV[m.k].sup),m.qty,m.inq,m.inD,+m.avg.toFixed(1),TRD[m.tr][1],m.leftIn==null?'':Math.round(m.leftIn),m.lt,m.safe,m.cover,m.moq,m.unit,m.ordD,m.sug,m.expW])],
+  '입고 지연 · 예정':[['상태','상품코드','품목','발주일','입고예정일','발주수량','입고합계','남은수량'],...late.concat(soonIn).map(p=>[p.late?'입고 지연':p.state,p.code,MV[p.code]?.name||'',p.ordD,p.inD,p.qty,p.got,p.rest])],
+  '소비기한':[['단계','상품코드','품목','입고','소비기한','수량','위험'],...stop.concat(disp,risk).map(l=>[STG[l.stage][0],l.k,MV[l.k].name,l.ind,l.e,l.q,l.risk])]};
+  if(canCost())S['법인별 재고금액']=[['법인','품목','수량','금액(원)'],...Object.entries(M.reduce((G,m)=>{const c=coName(MV[m.k].sup);G[c]=G[c]||[0,0,0];G[c][0]++;G[c][1]+=m.qty;G[c][2]+=m.amt;return G},{})).map(([c,x])=>[c,x[0],x[1],Math.round(x[2])])];
+  saveX(`오늘할일_${T}.xlsx`,S)};
 }
-document.addEventListener('click',e=>{const j=e.target.closest('a[data-adj]');if(j){e.preventDefault();adjPre={code:j.dataset.adj};go('adj');return}const a=e.target.closest('a[data-go]');if(!a)return;e.preventDefault();stSel=a.dataset.go;sF={...sF,st:'',q:a.dataset.go};go('stock')});
+/* 모바일 카드 (표 대신) */
+const mCards=L=>`<div class="mcards">${L.map(m=>`<button type="button" class="mcard" data-mk="${esc(m.k)}"><span class="mc1">${stb(m.st)} <b>${esc(MV[m.k].name)}</b></span><span class="mc2"><span>현재고 <b>${f0(m.qty)}</b></span><span>보유 <b>${leftCell(m)}</b></span><span>권장 <b>${m.sug?f0(m.sug):'–'}</b></span></span></button>`).join('')||'<p class="note">해당 품목이 없습니다.</p>'}</div>`;
+document.addEventListener('click',e=>{const c=e.target.closest('.mcard[data-mk]');if(c)openItem(c.dataset.mk)});
 
 /* ---------- 현재고 · 발주 권고 ---------- */
-let sF={co:'',br:'',st:'',q:''},stSel=null;
+let sF={co:'',br:'',sts:[],q:'',ps:'',more:false},stSel=null;
+const ST_ORDER=['gap','urg','soon','ok','over','none','zero','hold','drop'];
 function vStock(){ if(needData())return;
- const M=Object.values(MET), cnt=s=>M.filter(m=>m.st===s).length;
- $('#invRoot').innerHTML=head('현재고 · 발주 권고',`${T} 마감 · 판매량 = 배송 + 출고 · 재고보유일수 = 현재고 ÷ 28일 일평균 · 발주 권고일 = 오늘 + 입고 예정 포함 보유일수 − 리드타임 − 안전재고 · 주별 일평균(7일 단위)은 발주 판단 참고용 · 행을 누르면 상세`)+`
- <div class="chips">${['gap','urg','soon','ok','over','none','zero','hold','drop'].map(s=>`<button class="chip ${sF.st===s?'on':''}" data-s="${s}">${STL[s][0]} <b>${cnt(s)}</b></button>`).join('')}</div>
- <div class="filters"><select id="sCo">${opt(coList(),sF.co,'전체 법인')}</select><select id="sBr">${opt(brList(),sF.br,'전체 브랜드')}</select><input id="sQ" placeholder="상품코드 · 상품명" value="${esc(sF.q)}"><button class="b" id="sX">엑셀</button></div>
- <div class="tbl tall"><table id="stT"></table></div><div id="stD"></div>`;
- $('#invRoot').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{sF.st=sF.st===b.dataset.s?'':b.dataset.s;vStock()});
- $('#sCo').onchange=e=>{sF.co=e.target.value;draw()};$('#sBr').onchange=e=>{sF.br=e.target.value;draw()};$('#sQ').oninput=e=>{sF.q=e.target.value;draw()};
+ if(!Array.isArray(sF.sts))sF.sts=[];
+ const M=Object.values(MET), cnt=s=>M.filter(m=>m.st===s).length, all=M.filter(m=>m.st!=='drop').length, AM=amtMode();
+ $('#invRoot').innerHTML=head('현재고 · 발주 권고',`${T} 마감 · 처음엔 전체 재고 · 상태 버튼은 여러 개 함께 골라 걸러 봅니다 · 품목을 누르면 상세`,`일평균 = 최근 28일 <b>배송 출고</b> ÷ 재고가 있던 날수 (기타출고 제외). 추세 ↑ · ↓ 는 최근 7일 일평균이 28일 일평균보다 15% 넘게 많거나 적을 때.<br>보유일수 = (현재고 + 입고 예정) ÷ 일평균. 발주 권고일 = 오늘 + 보유일수 − 리드타임 − 안전재고.<br>권장 발주량 = 일평균 × (리드타임 + 안전재고 + 확보일수) − (현재고 + 입고 예정) → 주문 단위로 올림 → 최소 수량(MOQ) 미만이면 최소 수량. 품절 위험 = 입고 예정일 전에 현재고가 바닥남.`)+`
+ <div class="chips"><button class="chip ${sF.sts.length?'':'on'}" data-s="">전체 <b>${all}</b></button>${ST_ORDER.map(s=>`<button class="chip ${sF.sts.includes(s)?'on':''}" data-s="${s}" aria-pressed="${sF.sts.includes(s)}">${STL[s][0]} <b>${cnt(s)}</b></button>`).join('')}</div>
+ <div class="filters"><select id="sCo" aria-label="법인">${opt(coList(),sF.co,'전체 법인')}</select><select id="sBr" aria-label="브랜드">${opt(brList(),sF.br,'전체 브랜드')}</select><select id="sPs" aria-label="판매상태">${opt(['판매','발주중단','취급중단'],sF.ps,'전체 판매상태')}</select><input id="sQ" placeholder="상품코드 · 상품명" value="${esc(sF.q)}"><label><input type="checkbox" id="sMore" ${sF.more?'checked':''}> 열 더 보기</label><button class="b" id="sX">엑셀</button></div>
+ <div class="tbl tall mh"><table id="stT"></table></div><div id="stM"></div>`;
+ $('#invRoot').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const s=b.dataset.s;if(!s)sF.sts=[];else sF.sts=sF.sts.includes(s)?sF.sts.filter(x=>x!==s):sF.sts.concat(s);vStock()});
+ $('#sCo').onchange=e=>{sF.co=e.target.value;draw()};$('#sBr').onchange=e=>{sF.br=e.target.value;draw()};$('#sPs').onchange=e=>{sF.ps=e.target.value;draw()};$('#sQ').oninput=e=>{sF.q=e.target.value;draw()};$('#sMore').onchange=e=>{sF.more=e.target.checked;draw()};
  let rows=[];
  function draw(){
-  const q=sF.q.trim().toLowerCase();
-  rows=M.filter(m=>(sF.st?m.st===sF.st:m.st!=='drop')&&(!sF.co||coName(MV[m.k].sup)===sF.co)&&(!sF.br||brandOf(m.k)===sF.br)&&(!q||(m.k+' '+MV[m.k].name).toLowerCase().includes(q)))
-   .map(m=>({...m,name:MV[m.k].name,br:brandOf(m.k),co:coName(MV[m.k].sup),sr:STL[m.st][2],l:m.left??1e9,w0:m.w[0],w1:m.w[1],w2:m.w[2],w3:m.w[3]}));
+  const q=sF.q.trim().toLowerCase(), X=sF.more;
+  rows=M.filter(m=>(sF.sts.length?sF.sts.includes(m.st):m.st!=='drop')&&(!sF.co||coName(MV[m.k].sup)===sF.co)&&(!sF.br||brandOf(m.k)===sF.br)&&(!sF.ps||stOf(m.k)===sF.ps)&&(!q||(m.k+' '+MV[m.k].name).toLowerCase().includes(q)))
+   .map(m=>({...m,name:MV[m.k].name,br:brandOf(m.k),co:coName(MV[m.k].sup),ps:stOf(m.k),sr:STL[m.st][2],l:m.leftIn??m.left??1e9,w0:m.w[0],w1:m.w[1],w2:m.w[2],w3:m.w[3]}));
   if(!SORT.st)rows.sort((a,b)=>brIdx(a.br)-brIdx(b.br)||a.sr-b.sr||a.l-b.l);
   const t=$('#stT');
-  t.innerHTML=`<thead><tr><th data-k="sr">상태</th><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="br">브랜드</th><th data-k="co">법인</th><th class="n" data-k="qty">현재고</th><th class="n cst" data-k="amt">재고금액</th>${WKH(1)}${AVH(1)}<th class="n" data-k="l">재고보유일수</th><th class="n" data-k="inq">입고 예정</th><th class="n" data-k="lt">리드타임</th><th class="n" data-k="safe">안전재고</th><th data-k="ordD">발주 권고일</th><th class="n" data-k="sug">권장 발주</th></tr></thead><tbody></tbody>`;
+  t.innerHTML=`<thead><tr><th data-k="sr">상태</th><th data-k="name">브랜드 · 품목</th>${X?'<th data-k="co">법인</th>':''}<th class="n" data-k="qty">현재고</th>${AM?'<th class="n" data-k="amt">재고금액</th>':''}<th class="n" data-k="inq">입고 예정</th><th class="n" data-k="avg">일평균 · 추세</th>${X?WKH(1):''}<th class="n" data-k="l">보유일수</th>${X?'<th class="n" data-k="lt">리드타임</th><th class="n" data-k="rl">실제 리드타임</th><th class="n" data-k="safe">안전재고</th><th class="n" data-k="cover">확보일수</th><th class="n" data-k="moq">최소 수량</th><th class="n" data-k="unit">주문 단위</th><th data-k="ps">판매상태</th>':''}<th data-k="ordD">발주 권고일</th><th class="n" data-k="sug">권장 발주량</th></tr></thead><tbody></tbody>`;
   sortRows(t,'st',rows,draw);
-  t.tBodies[0].innerHTML=rows.map(r=>`<tr class="click ${r.k===stSel?'selr':''}" data-k="${esc(r.k)}"><td>${stb(r.st)}</td><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td>${esc(r.br)}</td><td>${esc(r.co)}</td><td class="n">${f0(r.qty)}</td><td class="n cst ${r.u?'unk':''}">${f0(r.amt)}</td>${[0,1,2,3].map(i=>`<td class="n wk">${r.w[i]?f0(r.w[i]):'–'}</td>`).join('')}<td class="n"><b>${r.avg?f0(r.avg):'–'}</b>${Math.abs(r.trend)>=.3?` <span class="st ${r.trend>0?'s-over':'s-soon'}" title="최근 7일 일평균 ÷ 28일 일평균">${r.trend>0?'▲':'▼'}${Math.round(Math.abs(r.trend)*100)}%</span>`:''}</td><td class="n">${r.left==null?'–':f0(r.left)+'일'}</td><td class="n">${r.inq?f0(r.inq)+`<br><span class="note">${r.inD}</span>`:'–'}</td><td class="n">${r.lt}일</td><td class="n">${r.safe}일</td><td>${ordCell(r.ordD)}</td><td class="n">${r.sug?f0(r.sug):'–'}</td></tr>`).join('')||'<tr><td colspan="19">조건에 맞는 품목이 없습니다.</td></tr>';
-  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="5">합계 ${rows.length}품목</td><td class="n">${f0(rows.reduce((s,r)=>s+r.qty,0))}</td><td class="n cst">${f0(rows.reduce((s,r)=>s+r.amt,0))}</td>${['w0','w1','w2','w3','avg'].map(x=>`<td class="n">${f0(rows.reduce((s,r)=>s+r[x],0))}</td>`).join('')}<td></td><td class="n">${f0(rows.reduce((s,r)=>s+r.inq,0))}</td><td></td><td></td><td></td><td class="n">${f0(rows.reduce((s,r)=>s+r.sug,0))}</td></tr></tfoot>`);
-  t.tBodies[0].onclick=e=>{const tr=e.target.closest('tr[data-k]');if(!tr)return;stSel=tr.dataset.k;draw();drawD()};
+  const nc=8+(X?12:0)+(AM?1:0);
+  t.tBodies[0].innerHTML=rows.map(r=>`<tr class="click ${r.k===stSel?'selr':''}" data-k="${esc(r.k)}"><td>${stb(r.st)}</td><td><span class="note">${esc(r.br)}</span><br>${esc(r.name)} <span class="note">${esc(r.k)}</span></td>${X?`<td>${esc(r.co)}</td>`:''}<td class="n">${f0(r.qty)}</td>${AM?`<td class="n ${r.u?'unk':''}">${fA(r.amt)}</td>`:''}<td class="n">${inCell(r)}</td><td class="n"><b>${fV(r.avg)}</b> ${trB(r)}</td>${X?[0,1,2,3].map(i=>`<td class="n wk">${r.w[i]?fV(r.w[i]):'–'}</td>`).join(''):''}<td class="n">${leftCell(r)}</td>${X?`<td class="n">${r.lt}일</td><td class="n">${r.rl==null?'–':f0(r.rl)+'일'}${r.rl!=null&&Math.abs(r.rl-r.lt)>=7?' <span class="st s-soon">차이</span>':''}</td><td class="n">${r.safe}일</td><td class="n">${r.cover}일</td><td class="n">${f0(r.moq)}</td><td class="n">${f0(r.unit)}</td><td>${esc(r.ps)}</td>`:''}<td>${ordCell(r.ordD)}</td><td class="n">${sugCell(r)}</td></tr>`).join('')||`<tr><td colspan="${nc}">조건에 맞는 품목이 없습니다.</td></tr>`;
+  const S=x=>rows.reduce((s,r)=>s+(r[x]||0),0);
+  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="${X?3:2}">합계 ${rows.length}품목</td><td class="n">${f0(S('qty'))}</td>${AM?`<td class="n">${fA(S('amt'))}</td>`:''}<td class="n">${f0(S('inq'))}</td><td class="n">${fV(S('avg'))}</td>${X?['w0','w1','w2','w3'].map(x=>`<td class="n">${fV(S(x))}</td>`).join(''):''}<td></td>${X?'<td colspan="7"></td>':''}<td></td><td class="n">${f0(S('sug'))}</td></tr></tfoot>`);
+  t.tBodies[0].onclick=e=>{if(e.target.closest('a'))return;const tr=e.target.closest('tr[data-k]');if(!tr)return;stSel=tr.dataset.k;t.querySelectorAll('tr.selr').forEach(x=>x.classList.remove('selr'));tr.classList.add('selr');openItem(stSel)};
+  $('#stM').innerHTML=mCards(rows.slice(0,200));
  }
- function drawD(){ const m=MET[stSel]; if(!m){$('#stD').innerHTML='';return}
-  const mx=Math.max(...m.hist.map(h=>h.sale),1);
-  $('#stD').innerHTML=`<div class="panel drawer"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>${esc(stSel)} ${esc(MV[stSel].name)} ${stb(m.st)}</h3><div style="display:flex;gap:6px"><button class="b" id="dDay">일별 수불</button><button class="b p" id="dPo">발주 등록${m.sug?` (${f0(m.sug)}개)`:''}</button></div></div>
-  <p class="note">${esc(brandOf(stSel))} · ${esc(coName(MV[stSel].sup))} · 리드타임 ${m.lt}일 · 안전재고 ${m.safe}일 · MOQ ${f0(m.moq)} · 일평균 ${[0,1,2,3].map(i=>`${WR(i)} ${f0(m.w[i])}`).join(' · ')} · 28일 ${f0(m.avg)}</p>
-  <div class="spark" title="최근 28일 일별 출고">${m.hist.map(h=>`<i style="height:${Math.max(2,h.sale/mx*100)}%" title="${h.d} ${h.sale}"></i>`).join('')}</div><p class="note">최근 28일 일별 판매량 (배송 + 출고) · ${addS(T,-27)} ~ ${T}</p>
-  <h3 style="margin-top:12px">남은 입고분 (선입선출 순)</h3><div class="tbl"><table data-sb="1"><thead><tr><th>입고</th><th class="n">수량</th><th class="n cst">단가</th><th>소비기한</th><th>1/3 시점</th><th>1/2 시점</th><th>단계</th><th>판매 완료 예상</th></tr></thead><tbody>${m.lots.map(l=>`<tr><td>${esc(l.d==='기초'?'기초 (1/1)':l.ind)}</td><td class="n">${f0(l.q)}</td><td class="n cst ${l.c==null?'unk':''}">${l.c==null?'미입력':f0(l.c)}</td><td>${l.e||'<span class="unk">미입력</span>'}</td><td>${l.d1||'–'}</td><td>${l.d2||'–'}</td><td><span class="st ${STG[l.stage][1]}">${STG[l.stage][0]}</span> ${l.risk?`<span class="st s-soon">${l.risk}</span>`:''}</td><td>${l.out||'–'}</td></tr>`).join('')||'<tr><td colspan="8">남은 재고가 없습니다.</td></tr>'}</tbody></table></div></div>`;
-  $('#dDay').onclick=()=>{dSel=stSel;go('day')}; $('#dPo').onclick=()=>{poPre={code:stSel,qty:m.sug||m.moq};go('po')};
-  $('#stD').scrollIntoView({block:'nearest'});
- }
- $('#sX').onclick=()=>saveX(`현재고_발주권고_${T}.xlsx`,{'현재고':[['상태','상품코드','품목','브랜드','법인','현재고','재고금액',...[0,1,2,3].map(i=>'일평균 '+WR(i)),'28일 일평균 '+WR(4),'재고보유일수','입고예정','입고예정일','리드타임','안전재고','발주권고일','권장발주'],...rows.map(r=>[STL[r.st][0],r.k,r.name,r.br,r.co,r.qty,Math.round(r.amt),...r.w.map(v=>Math.round(v)),Math.round(r.avg),r.left==null?'':Math.round(r.left),r.inq,r.inD,r.lt,r.safe,r.ordD,r.sug])]});
- draw(); drawD();
+ $('#sX').onclick=()=>{const H=['상태','브랜드','상품코드','품목','법인','판매상태','현재고',...(canCost()?['재고금액(원)']:[]),'입고예정','입고예정일','배송 일평균(28일)','추세',...[0,1,2,3].map(i=>'일평균 '+WR(i)),'보유일수(입고예정 포함)','리드타임','실제 리드타임','안전재고','확보일수','최소수량','주문단위','발주권고일','권장발주량','소비기한 경고'];
+  saveX(`현재고_발주권고_${T}.xlsx`,{'현재고':[H,...rows.map(r=>[STL[r.st][0],r.br,r.k,r.name,r.co,r.ps,r.qty,...(canCost()?[Math.round(r.amt)]:[]),r.inq,r.inD,+r.avg.toFixed(1),TRD[r.tr][1],...r.w.map(v=>+v.toFixed(1)),r.leftIn==null?(r.left==null?'':Math.round(r.left)):Math.round(r.leftIn),r.lt,r.rl==null?'':Math.round(r.rl),r.safe,r.cover,r.moq,r.unit,r.ordD,r.sug,r.expW])]},{price:0})};
+ draw();
 }
+
+/* ---------- 품목 상세 (오른쪽 창) ---------- */
+function openItem(k){ if(!MV[k])return; closeItem(); const m=MET[k], c=CALC[k], cc=costOf(k);
+ const from=addS(T,-89), D=c.days.filter(x=>x.d>=from);
+ const P=poList().filter(p=>p.code===k).sort((a,b)=>String(b.ordD).localeCompare(String(a.ordD)));
+ const mx=m?Math.max(...m.hist.map(h=>h.sale),1):1;
+ const el=document.createElement('aside'); el.className='invw idrawer'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','품목 상세');
+ el.innerHTML=`<div class="idh"><div><span class="note">${esc(brandOf(k))} · ${esc(coName(MV[k].sup))} · ${esc(k)}</span><h3>${esc(MV[k].name)} ${m?stb(m.st):''}</h3></div><button class="b sm" data-x aria-label="닫기">닫기</button></div>
+ ${m?`<div class="idk"><div><span>현재고</span><b>${f0(m.qty)}</b></div><div><span>입고 예정</span><b>${f0(m.inq)}</b><em>${m.inD||''}</em></div><div><span>일평균 ${trB(m)}</span><b>${fV(m.avg)}</b></div><div><span>보유일수</span><b>${leftCell(m)}</b></div><div><span>발주 권고일</span><b>${m.ordD?ordCell(m.ordD):'–'}</b></div><div><span>권장 발주량</span><b>${m.sug?f0(m.sug):'–'}</b>${m.expW?`<em style="color:var(--amb)">소비기한 초과 위험 · ${esc(m.expW)}</em>`:''}</div></div>
+ <p class="note">리드타임 ${m.lt}일${m.rl!=null?` (실제 최근 평균 ${f0(m.rl)}일${Math.abs(m.rl-m.lt)>=7?' · <b style="color:var(--amb)">기준 수정 검토</b>':''})`:''} · 안전재고 ${m.safe}일 · 확보일수 ${m.cover}일 · 최소 수량 ${f0(m.moq)} · 주문 단위 ${f0(m.unit)} · ${esc(stOf(k))}</p>
+ <div class="ida">${canInv()&&m.st!=='drop'&&m.st!=='hold'?`<button class="b p sm wr" data-ipo>발주 등록${m.sug?` (${f0(m.sug)}개)`:''}</button>`:''}${canInv()?'<button class="b sm wr" data-iadj>재고 조정</button>':''}</div>
+ <h4>주별 배송 일평균</h4><div class="idw">${[3,2,1,0].map(i=>`<div><span>${WR(i)}</span><b>${fV(m.w[i])}</b></div>`).join('')}</div>
+ <div class="spark" title="최근 28일 일별 배송 출고">${m.hist.map(h=>`<i style="height:${Math.max(2,h.sale/mx*100)}%;${h.ok?'':'opacity:.25'}" title="${h.d} 배송 ${h.sale}${h.ok?'':' · 재고 0 (일평균 제외)'}"></i>`).join('')}</div><p class="note">최근 28일 일별 배송 출고 · 흐린 막대는 재고가 0이라 일평균에서 뺀 날</p>`:'<p class="note">실적제외 브랜드라 발주 권고 계산을 하지 않습니다.</p>'}
+ <h4>남은 입고분 (소비기한)</h4><div class="tbl"><table><thead><tr><th>입고</th><th class="n">수량</th><th class="n cstp">단가</th><th>소비기한</th><th>단계</th></tr></thead><tbody>${(m?m.lots:c.layers.filter(l=>l.q>0)).map(l=>`<tr><td>${esc(l.d==='기초'?'기초':l.ind)}</td><td class="n">${f0(l.q)}</td><td class="n cstp ${l.c==null?'unk':''}">${l.c==null?'미입력':f0(l.c)}</td><td>${l.e||'<span class="unk">미입력</span>'}</td><td>${l.stage?`<span class="st ${STG[l.stage][1]}">${STG[l.stage][0]}</span>`:''}</td></tr>`).join('')||'<tr><td colspan="5">남은 재고가 없습니다.</td></tr>'}</tbody></table></div>
+ <h4>발주 · 입고 이력</h4><div class="tbl"><table><thead><tr><th>상태</th><th>발주일</th><th class="n">발주</th><th class="n">입고</th><th>입고일</th><th class="n">리드타임</th></tr></thead><tbody>${P.map(p=>`<tr><td><span class="st ${PO_ST[p.state]}">${p.state}</span></td><td>${p.ordD||''}</td><td class="n">${f0(p.qty)}</td><td class="n">${f0(p.got)}</td><td>${p.rc.map(r=>md(r.d)+' '+f0(r.q)).join(' · ')||('예정 '+(p.inD||''))}</td><td class="n">${p.ltN!=null?'완료 '+p.ltN+'일':p.lt1!=null?'첫 입고 '+p.lt1+'일':'계획 '+(p.plt??'–')+'일'}</td></tr>`).join('')||'<tr><td colspan="6">발주 이력이 없습니다.</td></tr>'}</tbody></table></div>
+ <h4>최근 90일 일별 수불</h4><div class="tbl" style="max-height:320px;overflow:auto"><table><thead><tr><th>일자</th><th class="n">기초</th><th class="n">입고</th><th class="n">배송</th><th class="n">기타출고</th><th class="n">조정</th><th class="n">반품</th><th class="n">기말</th></tr></thead><tbody>${D.slice().reverse().map(x=>`<tr><td>${x.d}</td><td class="n">${f0(x.bq)}</td><td class="n">${x.iq?f0(x.iq):''}</td><td class="n">${x.sq?f0(x.sq):''}</td><td class="n">${x.oq?f0(x.oq):''}</td><td class="n">${x.aq?f0(x.aq):''}</td><td class="n">${x.riq||x.roq?f0(x.riq-x.roq):''}</td><td class="n" ${x.neg?'style="color:var(--red)"':''}>${f0(x.eq)}</td></tr>`).join('')||'<tr><td colspan="8">최근 90일 움직임이 없습니다.</td></tr>'}</tbody></table></div>`;
+ document.body.appendChild(el); el.classList.add('noprice-'+(!canCost()&&!canPrice()));
+ if(!canCost()&&!canPrice())el.querySelectorAll('.cstp').forEach(x=>x.style.display='none');
+ const bk=document.createElement('div'); bk.className='invw idbk'; bk.onclick=closeItem; document.body.appendChild(bk);
+ el.querySelector('[data-x]').onclick=closeItem; el.querySelector('[data-x]').focus();
+ const ip=el.querySelector('[data-ipo]'); if(ip)ip.onclick=()=>{poPre={code:k,qty:m.sug||m.moq};closeItem();go('po')};
+ const ia=el.querySelector('[data-iadj]'); if(ia)ia.onclick=()=>{adjPre={code:k};closeItem();go('adj')};
+ el.onkeydown=e=>{if(e.key==='Escape')closeItem()};
+}
+function closeItem(){ document.querySelectorAll('.idrawer,.idbk').forEach(x=>x.remove()) }
 
 /* ---------- 소비기한 관리 ---------- */
 let eF={stage:'',co:'',br:'',q:'',mode:'item'};
@@ -1992,7 +2158,7 @@ function vExp(){ if(needData())return;
  <div class="chips">${['ok','disp','stop','exp','none'].map(s=>`<button class="chip ${eF.stage===s?'on':''}" data-s="${s}">${STG[s][0]} <b>${c(s).length}건 · ${f0(cq(s))}개</b></button>`).join('')}<button class="chip ${eF.stage==='risk'?'on':''}" data-s="risk">기한 내 판매 어려움 <b>${L.filter(l=>l.risk).length}건</b></button></div>
  <div class="filters"><span class="seg"><button class="b ${eF.mode==='item'?'p':''}" data-mode="item">품목별</button><button class="b ${eF.mode==='lot'?'p':''}" data-mode="lot">입고분 목록</button></span><select id="eCo">${opt(coList(),eF.co,'전체 법인')}</select><select id="eBr">${opt(brList(),eF.br,'전체 브랜드')}</select><input id="eQ" placeholder="상품코드 · 상품명" value="${esc(eF.q)}"><button class="b" id="eX">엑셀</button></div>
  <div class="tbl tall"><table id="exT"></table></div>
- <p class="note">품목별 보기는 브랜드 순서 → 품목 → 소비기한 빠른 순입니다. 색은 단계(초록 정상판매 · 노랑 처분 · 빨강 판매 금지), ⚠는 다음 단계 전에 다 팔기 어려운 건입니다. 소비기한은 입고 단가 · 소비기한 또는 재고 조정의 실사에서 넣습니다.</p>`;
+ <p class="note">품목별 보기는 브랜드 순서 → 품목 → 소비기한 빠른 순입니다. 색은 단계(초록 정상판매 · 노랑 처분 · 빨강 판매 금지), ⚠는 다음 단계 전에 다 팔기 어려운 건입니다. 소비기한은 입고 관리 › 단가 · 소비기한 또는 재고 조정 · 실사에서 넣습니다.</p>`;
  $('#invRoot').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{eF.stage=eF.stage===b.dataset.s?'':b.dataset.s;vExp()});
  $('#eCo').onchange=e=>{eF.co=e.target.value;draw()};$('#eBr').onchange=e=>{eF.br=e.target.value;draw()};$('#eQ').oninput=e=>{eF.q=e.target.value;draw()};
  $('#invRoot').querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{eF.mode=b.dataset.mode;vExp()});
@@ -2016,49 +2182,116 @@ function vExp(){ if(needData())return;
  draw();
 }
 
-/* ---------- 재고 수불부 ---------- */
+/* ---------- 월간 수불 · 실적: 재고 수불부 ---------- */
 let bF={m:'',from:'',to:'',co:'',br:'',q:'',mv:true,unk:false},BOOK=[];
+const monthsList=()=>{const ms=[];let [y,m]=firstDate().slice(0,7).split('-').map(Number);const [ly,lm]=T.slice(0,7).split('-').map(Number);while(y<ly||(y===ly&&m<=lm)){ms.push(`${y}-${String(m).padStart(2,'0')}`);m++;if(m>12){m=1;y++}}return ms};
 function vBook(){ if(needData())return;
- const f=firstDate(); if(!bF.from){const mm=T.slice(0,7);bF.m=mm;setM(mm)}
- const ms=[];{let [y,m]=f.slice(0,7).split('-').map(Number);const [ly,lm]=T.slice(0,7).split('-').map(Number);while(y<ly||(y===ly&&m<=lm)){ms.push(`${y}-${String(m).padStart(2,'0')}`);m++;if(m>12){m=1;y++}}}
- $('#invRoot').innerHTML=head('재고 수불부','기초(이월) → 입고 → 출고 → 기말을 수량 · 선입선출 금액으로 봅니다 · 노란 행은 원가가 비어 금액이 확정되지 않은 품목 · 행을 누르면 일별 수불')+`
+ if(!bF.from){const mm=T.slice(0,7);bF.m=mm;setM(mm)}
+ const ms=monthsList(), AM=amtMode();
+ $('#invRoot').innerHTML=head('재고 수불부',`기초 → 입고 → 출고 → 기말 · ${AM?'금액 보기 ('+UNIT+')':'수량 보기'} · 행을 누르면 품목 상세`,`배송출고 = 이지어드민 배송(판매출고), 기타출고 = 출고(퀵 · 샘플 · 재발송 등). 둘 다 재고에서 빠지고 매출원가에 들어갑니다. 재고조정 = 이지어드민 조정 + 에이온 수기조정 · 실사 차이. 금액은 선입선출이며, 노란 행은 단가가 비어 금액이 확정되지 않은 품목입니다. 실적제외 브랜드 품목은 빠집니다.`)+`
  <div class="kpis" id="bK"></div>
- <div class="filters"><select id="bM"><option value="">기간 직접 지정</option>${ms.reverse().map(x=>`<option value="${x}" ${x===bF.m?'selected':''}>${x.replace('-','년 ')}월</option>`).join('')}</select>
+ <div class="filters"><select id="bM" aria-label="월"><option value="">기간 직접 지정</option>${ms.slice().reverse().map(x=>`<option value="${x}" ${x===bF.m?'selected':''}>${x.replace('-','년 ')}월</option>`).join('')}</select>
  <label>시작 <input type="date" id="bFr" value="${bF.from}"></label><label>종료 <input type="date" id="bTo" value="${bF.to}"></label>
- <select id="bCo">${opt(coList(),bF.co,'전체 법인')}</select><select id="bBr">${opt(brList(),bF.br,'전체 브랜드')}</select><input id="bQ" placeholder="상품코드 · 상품명" value="${esc(bF.q)}">
- <label><input type="checkbox" id="bMv" ${bF.mv?'checked':''}> 움직임 · 재고 있는 품목만</label><label><input type="checkbox" id="bUn" ${bF.unk?'checked':''}> 원가 미확정만</label><button class="b" id="bX">엑셀</button></div>
- <div class="tbl tall"><table id="bkT"></table></div>
- <p class="note">배송 = 판매출고, 출고 = 기타출고(샘플 · 재발송 · 교환 등)로 봅니다. 배송 안의 기타출고는 당분간 구분하지 않습니다. 둘 다 재고에서 빠지고 매출원가에 반영됩니다. 재고조정 = 이지어드민 조정 + 에이온 수기조정 · 실사 차이 (마이너스 재고를 입고로 메운 차액 포함).</p>`;
+ <select id="bCo" aria-label="법인">${opt(coList(),bF.co,'전체 법인')}</select><select id="bBr" aria-label="브랜드">${opt(brList(),bF.br,'전체 브랜드')}</select><input id="bQ" placeholder="상품코드 · 상품명" value="${esc(bF.q)}">
+ <label><input type="checkbox" id="bMv" ${bF.mv?'checked':''}> 움직임 · 재고 있는 품목만</label>${canCost()?`<label><input type="checkbox" id="bUn" ${bF.unk?'checked':''}> 원가 미확정만</label>`:''}<button class="b" id="bX">엑셀</button></div>
+ <div class="tbl tall"><table id="bkT"></table></div>`;
  $('#bM').onchange=e=>{bF.m=e.target.value;setM(bF.m);vBook()};
  $('#bFr').onchange=e=>{bF.from=e.target.value;bF.m='';vBook()};$('#bTo').onchange=e=>{bF.to=e.target.value;bF.m='';vBook()};
  $('#bCo').onchange=e=>{bF.co=e.target.value;draw()};$('#bBr').onchange=e=>{bF.br=e.target.value;draw()};$('#bQ').oninput=e=>{bF.q=e.target.value;draw()};
- $('#bMv').onchange=e=>{bF.mv=e.target.checked;draw()};$('#bUn').onchange=e=>{bF.unk=e.target.checked;draw()};
- const K=['bq','ba','iq','ia','riq','ria','sq','sa','oq','oa','roq','roa','aq','aa','eq','ea'];
+ $('#bMv').onchange=e=>{bF.mv=e.target.checked;draw()};if($('#bUn'))$('#bUn').onchange=e=>{bF.unk=e.target.checked;draw()};
+ const KQ=[['bq','기초'],['iq','입고'],['riq','반품입고'],['sq','배송출고'],['oq','기타출고'],['roq','반품출고'],['aq','재고조정'],['eq','기말']];
+ const KA=[['ba','기초 금액'],['ia','입고 금액'],['ria','반품입고 금액'],['sa','배송출고 원가'],['oa','기타출고 원가'],['roa','반품출고 원가'],['aa','재고조정 금액'],['ea','기말 금액']];
  function draw(){ const {from,to}=bF, q=bF.q.trim().toLowerCase(); let rows=[];
-  for(const k in CALC){ const m=MV[k],p=period(CALC[k],from,to),c=coName(m.sup),br=brandOf(k);
+  for(const k in CALC){ if(!live(k))continue; const m=MV[k],p=period(CALC[k],from,to),c=coName(m.sup),br=brandOf(k);
    if(bF.co&&c!==bF.co)continue; if(bF.br&&br!==bF.br)continue; if(q&&!(k+' '+m.name).toLowerCase().includes(q))continue;
-   if(bF.mv&&!p.moved&&p.b.q===0&&p.e.q===0)continue; if(bF.unk&&!p.u)continue;
-   rows.push({k,name:m.name,co:c,br,bq:p.b.q,ba:p.b.a,iq:p.f.iq,ia:p.f.ia,riq:p.f.riq,ria:p.f.ria,sq:p.f.sq,sa:p.f.sa,oq:p.f.oq,oa:p.f.oa,roq:p.f.roq,roa:p.f.roa,aq:p.f.aq,aa:p.f.aa,eq:p.e.q,ea:p.e.a,uc:p.e.q>0?p.e.a/p.e.q:null,u:p.u,cogs:p.f.sa+p.f.oa+p.f.roa}); }
-  if(!SORT.bk)rows.sort((a,b)=>a.k<b.k?-1:1);
-  const S=k=>rows.reduce((s,r)=>s+(r[k]||0),0);
-  $('#bK').innerHTML=`<div class="kpi cst"><span>기초 재고금액 (${from})</span><b>${fM(S('ba'))}<small> 원</small></b></div><div class="kpi cst"><span>입고 금액</span><b>${fM(S('ia'))}<small> 원</small></b></div><div class="kpi cst"><span>판매출고 원가 (배송)</span><b>${fM(S('sa'))}<small> 원</small></b></div><div class="kpi cst"><span>기타출고 원가 (출고)</span><b>${fM(S('oa'))}<small> 원</small></b></div><div class="kpi cst"><span>재고조정 금액</span><b>${fM(S('aa'))}<small> 원</small></b></div><div class="kpi cst"><span>기말 재고금액 (${to})</span><b>${fM(S('ea'))}<small> 원</small></b></div><div class="kpi cst"><span>원가 미확정 품목</span><b style="color:${rows.filter(r=>r.u).length?'var(--amb)':'inherit'}">${rows.filter(r=>r.u).length}</b></div>`;
-  const t=$('#bkT'), CC=canCost(), G=(x,n)=>`<th colspan="${CC?n:1}">${x}</th>`;
-  t.innerHTML=`<thead><tr class="g"><th colspan="3"></th>${G('기초 (이월)',2)}${G('입고',2)}${G('반품입고',2)}${G('배송 (판매출고)',2)}${G('출고 (기타출고)',2)}${G('반품출고',2)}${G('재고조정',2)}${G('기말',3)}<th class="cst"></th></tr><tr><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="co">법인</th>${K.map((k,i)=>`<th class="n${i%2?' cst':''}" data-k="${k}">${i%2?'금액':'수량'}</th>`).join('')}<th class="n cst" data-k="uc">단가</th><th class="cst" data-k="u">원가</th></tr></thead><tbody></tbody>`;
+   if(bF.mv&&!p.moved&&p.b.q===0&&p.e.q===0)continue; if(bF.unk&&canCost()&&!p.u)continue;
+   rows.push({k,name:m.name,co:c,br,bq:p.b.q,ba:p.b.a,iq:p.f.iq,ia:p.f.ia,riq:p.f.riq,ria:p.f.ria,sq:p.f.sq,sa:p.f.sa,oq:p.f.oq,oa:p.f.oa,roq:p.f.roq,roa:p.f.roa,aq:p.f.aq,aa:p.f.aa,eq:p.e.q,ea:p.e.a,uc:p.e.q>0?p.e.a/p.e.q:null,u:p.u}); }
+  if(!SORT.bk)rows.sort((a,b)=>brIdx(a.br)-brIdx(b.br)||(a.k<b.k?-1:1));
+  const S=k=>rows.reduce((s,r)=>s+(r[k]||0),0), nu=rows.filter(r=>r.u).length;
+  $('#bK').innerHTML=AM?KA.filter(([k])=>!['ria','roa'].includes(k)).map(([k,t])=>`<div class="kpi"><span>${t}</span><b>${fA(S(k))}</b></div>`).join('')+`<div class="kpi"><span>원가 미확정 품목</span><b style="color:${nu?'var(--amb)':'inherit'}">${nu}</b></div>`
+   :KQ.filter(([k])=>!['riq','roq'].includes(k)).map(([k,t])=>`<div class="kpi"><span>${t} 수량</span><b>${f0(S(k))}</b></div>`).join('');
+  const t=$('#bkT'), C=AM?[['eq','기말 수량',0],...KA.map(x=>[x[0],x[1],1]),['uc','기말 단가',1]]:KQ.map(x=>[x[0],x[1],0]);
+  t.innerHTML=`<thead><tr><th data-k="name">브랜드 · 품목</th><th data-k="co">법인</th>${C.map(([k,h])=>`<th class="n" data-k="${k}">${h}</th>`).join('')}${AM?'<th data-k="u">원가</th>':''}</tr></thead><tbody></tbody>`;
   sortRows(t,'bk',rows,draw); BOOK=rows;
-  t.tBodies[0].innerHTML=rows.map(r=>`<tr class="click ${r.u?'miss':''}" data-k="${esc(r.k)}"><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td>${esc(r.co)}</td>${K.concat('uc').map((k,i)=>`<td class="n${i%2||k==='uc'?' cst':''}">${f0(r[k])}</td>`).join('')}<td class="cst">${r.u?'<span class="st s-soon">미확정</span>':'<span class="st s-ok">확정</span>'}</td></tr>`).join('')||'<tr><td colspan="21">조건에 맞는 품목이 없습니다.</td></tr>';
-  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="3">합계 ${rows.length}품목</td>${K.map((k,i)=>`<td class="n${i%2?' cst':''}">${f0(S(k))}</td>`).join('')}<td class="cst"></td><td class="cst"></td></tr></tfoot>`);
-  t.tBodies[0].onclick=e=>{const tr=e.target.closest('tr[data-k]');if(!tr)return;dSel=tr.dataset.k;dF={from:bF.from,to:bF.to};go('day')};
+  const cell=(r,k,a)=>a?fA(r[k]):f0(r[k]);
+  t.tBodies[0].innerHTML=rows.map(r=>`<tr class="click ${AM&&r.u?'miss':''}" data-k="${esc(r.k)}"><td><span class="note">${esc(r.br)}</span><br>${esc(r.name)} <span class="note">${esc(r.k)}</span></td><td>${esc(r.co)}</td>${C.map(([k,,a])=>`<td class="n">${cell(r,k,a)}</td>`).join('')}${AM?`<td>${r.u?'<span class="st s-soon">미확정</span>':'<span class="st s-ok">확정</span>'}</td>`:''}</tr>`).join('')||`<tr><td colspan="${C.length+3}">조건에 맞는 품목이 없습니다.</td></tr>`;
+  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="2">합계 ${rows.length}품목</td>${C.map(([k,,a])=>`<td class="n">${k==='uc'?'':a?fA(S(k)):f0(S(k))}</td>`).join('')}${AM?'<td></td>':''}</tr></tfoot>`);
+  t.tBodies[0].onclick=e=>{const tr=e.target.closest('tr[data-k]');if(tr)openItem(tr.dataset.k)};
  }
- $('#bX').onclick=()=>saveX(`재고수불부_${bF.from}_${bF.to}.xlsx`,{'수불부':[['상품코드','품목','법인','브랜드','기초수량','기초금액','입고수량','입고금액','반품입고수량','반품입고금액','판매출고(배송)수량','판매출고원가','기타출고(출고)수량','기타출고원가','반품출고수량','반품출고원가','재고조정수량','재고조정금액','기말수량','기말금액','기말단가','원가상태'],...BOOK.map(r=>[r.k,r.name,r.co,r.br,...K.map(k=>Math.round(r[k])),r.uc==null?'':Math.round(r.uc),r.u?'미확정':'확정'])]});
+ $('#bX').onclick=()=>{const base=r=>[r.br,r.k,r.name,r.co];const S={'수량':[['브랜드','상품코드','품목','법인',...KQ.map(x=>x[1])],...BOOK.map(r=>[...base(r),...KQ.map(([k])=>Math.round(r[k]))])]};
+  if(canCost())S['금액(원)']=[['브랜드','상품코드','품목','법인','기말 수량',...KA.map(x=>x[1]),'기말 단가','원가 상태'],...BOOK.map(r=>[...base(r),r.eq,...KA.map(([k])=>Math.round(r[k])),r.uc==null?'':Math.round(r.uc),r.u?'미확정':'확정'])];
+  saveX(`재고수불부_${bF.from}_${bF.to}.xlsx`,S)};
  draw();
 }
 function setM(mm){ if(!mm)return; const [y,m]=mm.split('-').map(Number); bF.from=mm+'-01'; bF.to=new Date(Date.UTC(y,m,0)).toISOString().slice(0,10); }
+
+/* ---------- 월간 수불 · 실적: 브랜드별 실적 ---------- */
+let rF={m:'',co:'',br:''};
+function vBrand(){ if(needData())return;
+ const ms=monthsList(); if(!rF.m||!ms.includes(rF.m))rF.m=T.slice(0,7);
+ const AM=amtMode(), mEnd=mm=>{const [y,m]=mm.split('-').map(Number);return new Date(Date.UTC(y,m,0)).toISOString().slice(0,10)};
+ const from=rF.m+'-01', to=rF.m===T.slice(0,7)?T:mEnd(rF.m), prevM=ms[ms.indexOf(rF.m)-1]||'', pFrom=prevM?prevM+'-01':'', pTo=prevM?addS(pFrom,diffS(from,to)):'';
+ const keys=Object.keys(MV).filter(k=>live(k)&&(!rF.co||coName(MV[k].sup)===rF.co)&&(!rF.br||brandOf(k)===rF.br)), G={}, TR={};
+ for(const k of keys){const b=brandOf(k),g=G[b]=G[b]||{b,n:0,act:0,sq:0,oq:0,sa:0,oa:0,aq:0,aa:0,pq:0,eq:0,ea:0,avg:0,urg:0,unk:0,nob:b==='(미지정)'};
+  const p=period(CALC[k],from,to), m=MET[k]; g.n++; if(m&&m.st!=='drop')g.act++;
+  g.sq+=p.f.sq;g.oq+=p.f.oq;g.sa+=p.f.sa;g.oa+=p.f.oa;g.aq+=p.f.aq;g.aa+=p.f.aa;g.eq+=p.e.q;g.ea+=p.e.a;if(p.u)g.unk++;
+  if(pFrom){const q=period(CALC[k],pFrom,pTo);g.pq+=q.f.sq}
+  if(m){g.avg+=m.avg;if(['gap','urg'].includes(m.st))g.urg++}
+  const tr=TR[b]=TR[b]||{};for(const x of CALC[k].days){const mm=x.d.slice(0,7);tr[mm]=tr[mm]||[0,0];tr[mm][0]+=x.sq;tr[mm][1]+=x.sa||0}}
+ let rows=Object.values(G).map(g=>({...g,tq:g.sq+g.oq,chg:g.pq?g.sq/g.pq-1:null,cogs:g.sa+g.oa,days:g.avg>0?Math.max(g.eq,0)/g.avg:null}));
+ if(!SORT.br)rows.sort((a,b)=>brIdx(a.b)-brIdx(b.b));
+ const S=x=>rows.reduce((s,r)=>s+(r[x]||0),0), nob=rows.find(r=>r.nob);
+ $('#invRoot').innerHTML=head('브랜드별 실적',`${from} ~ ${to}${pFrom?` · 전월 같은 일수 ${pFrom} ~ ${pTo}`:''} · ${AM?'금액 보기 ('+UNIT+')':'수량 보기'}`,`출고량 = 배송출고 + 기타출고. 전월 대비는 배송출고 기준, 같은 일수로 비교합니다. 일평균은 배송출고 28일 기준입니다. 재고조정은 출고량에 넣지 않습니다. 매출액은 판매처 데이터를 받은 뒤 추가합니다. 실적제외 브랜드는 빠집니다.`)+`
+ ${nob?`<div class="msg s-soon" style="margin:0 0 10px">브랜드 미지정 ${nob.n}품목이 '(미지정)'으로 묶여 있습니다. <a href="#" data-to="master" data-st="nob">품목 기준정보에서 브랜드 지정</a></div>`:''}
+ <div class="filters"><select id="rM" aria-label="월">${ms.slice().reverse().map(x=>`<option value="${x}" ${x===rF.m?'selected':''}>${x.replace('-','년 ')}월</option>`).join('')}</select><select id="rCo" aria-label="법인">${opt(coList(),rF.co,'전체 법인')}</select><select id="rBr" aria-label="브랜드">${opt(brList(),rF.br,'전체 브랜드')}</select><button class="b" id="rX">엑셀</button></div>
+ <div class="kpis">${AM?`<div class="kpi"><span>배송출고 원가</span><b>${fA(S('sa'))}</b></div><div class="kpi"><span>기타출고 원가</span><b>${fA(S('oa'))}</b></div><div class="kpi"><span>출고 원가 합계</span><b>${fA(S('cogs'))}</b></div><div class="kpi"><span>기말 재고금액</span><b>${fA(S('ea'))}</b></div>`
+  :`<div class="kpi"><span>배송출고</span><b>${f0(S('sq'))}</b>${S('pq')?`<em class="note">전월 같은 기간 ${f0(S('pq'))} · ${((S('sq')/S('pq')-1)*100).toFixed(1)}%</em>`:''}</div><div class="kpi"><span>기타출고</span><b>${f0(S('oq'))}</b></div><div class="kpi"><span>출고량</span><b>${f0(S('tq'))}</b></div><div class="kpi"><span>기말 재고</span><b>${f0(S('eq'))}</b></div>`}</div>
+ <div class="tbl tall"><table id="brT"></table></div>
+ <h3 style="margin-top:16px">월별 배송출고${AM?' 원가':''} 추이</h3><div class="tbl tall"><table data-sb="1" id="brM"></table></div>`;
+ $('#rM').onchange=e=>{rF.m=e.target.value;vBrand()};$('#rCo').onchange=e=>{rF.co=e.target.value;vBrand()};$('#rBr').onchange=e=>{rF.br=e.target.value;vBrand()};
+ const t=$('#brT');
+ const CQ=[['act','품목'],['sq','배송출고'],['oq','기타출고'],['tq','출고량'],['chg','전월 대비'],['aq','재고조정'],['eq','기말 재고'],['avg','일평균'],['days','보유일수'],['urg','즉시 발주']];
+ const CA=[['sa','배송출고 원가'],['oa','기타출고 원가'],['cogs','출고 원가 합계'],['aa','재고조정 금액'],['ea','기말 재고금액'],['unk','원가 미확정 품목']];
+ const C=AM?CA:CQ;
+ const val=(r,k)=>k==='act'?`${r.act}<span class="note">/${r.n}</span>`:k==='chg'?(r.chg==null?'–':`<span style="color:${r.chg>=0?'var(--grn)':'var(--red)'}">${r.chg>=0?'▲':'▼'} ${Math.abs(r.chg*100).toFixed(1)}%</span>`):k==='avg'?fV(r.avg):k==='days'?(r.days==null?'–':f0(r.days)+'일'):k==='urg'?(r.urg?`<span class="st s-urg">${r.urg}</span>`:'0'):k==='unk'?(r.unk?`<span class="st s-soon">${r.unk}</span>`:'0'):AM?fA(r[k]):k==='tq'?`<b>${f0(r[k])}</b>`:f0(r[k]);
+ function draw(){
+  t.innerHTML=`<thead><tr><th data-k="b">브랜드</th>${C.map(([k,h])=>`<th class="n" data-k="${k}">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+  sortRows(t,'br',rows,draw);
+  t.tBodies[0].innerHTML=rows.map(r=>`<tr class="${AM&&r.unk?'miss':''}"><td><b>${esc(r.b)}</b></td>${C.map(([k])=>`<td class="n">${val(r,k)}</td>`).join('')}</tr>`).join('');
+  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td>합계 ${rows.length}브랜드</td>${C.map(([k])=>`<td class="n">${k==='chg'||k==='days'?'':k==='avg'?fV(S('avg')):k==='act'||k==='urg'||k==='unk'?S(k):AM?fA(S(k)):f0(S(k))}</td>`).join('')}</tr></tfoot>`);
+ }
+ draw();
+ const ix=AM?1:0, V=(b,m)=>(TR[b]&&TR[b][m]?TR[b][m][ix]:0), mx=Math.max(1,...rows.flatMap(r=>ms.map(m=>V(r.b,m)))), fm=v=>AM?fA(v):f0(v);
+ $('#brM').innerHTML=`<thead><tr><th>브랜드</th>${ms.map(m=>`<th class="n">${+m.slice(5)}월</th>`).join('')}<th class="n">합계</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.b)}</td>${ms.map(m=>{const v=V(r.b,m);return `<td class="n hm" style="--a:${(v/mx*0.55).toFixed(3)}">${v?fm(v):'–'}</td>`}).join('')}<td class="n"><b>${fm(ms.reduce((s,m)=>s+V(r.b,m),0))}</b></td></tr>`).join('')}</tbody><tfoot><tr><td>합계</td>${ms.map(m=>`<td class="n">${fm(rows.reduce((s,r)=>s+V(r.b,m),0))}</td>`).join('')}<td class="n">${fm(rows.reduce((s,r)=>s+ms.reduce((a,m)=>a+V(r.b,m),0),0))}</td></tr></tfoot>`;
+ $('#rX').onclick=()=>{const SH={'수량':[['브랜드','품목(활성)','품목(전체)','배송출고','기타출고','출고량','전월동기 배송출고','재고조정','기말재고','배송 일평균(28일)','보유일수','즉시발주'],...rows.map(r=>[r.b,r.act,r.n,r.sq,r.oq,r.tq,r.pq,r.aq,r.eq,+r.avg.toFixed(1),r.days==null?'':Math.round(r.days),r.urg])],'월별 배송출고':[['브랜드',...ms],...rows.map(r=>[r.b,...ms.map(m=>TR[r.b]&&TR[r.b][m]?TR[r.b][m][0]:0)])]};
+  if(canCost()){SH['금액(원)']=[['브랜드','배송출고원가','기타출고원가','출고원가합계','재고조정금액','기말재고금액','원가미확정품목'],...rows.map(r=>[r.b,Math.round(r.sa),Math.round(r.oa),Math.round(r.cogs),Math.round(r.aa),Math.round(r.ea),r.unk])];SH['월별 배송출고원가(원)']=[['브랜드',...ms],...rows.map(r=>[r.b,...ms.map(m=>Math.round(TR[r.b]&&TR[r.b][m]?TR[r.b][m][1]:0))])]}
+  saveX(`브랜드별실적_${rF.m}.xlsx`,SH)};
+}
+
+/* ---------- 월간 수불 · 실적: 기타출고 (퀵 · 샘플 · 재발송) ---------- */
+let oF={m:'',co:'',br:'',q:''};
+function vEtc(){ if(needData())return;
+ const ms=monthsList(); if(!oF.m||!ms.includes(oF.m))oF.m=T.slice(0,7);
+ const AM=amtMode(), q=oF.q.trim().toLowerCase(), R=[], TRM={};
+ for(const k in CALC){ if(!live(k))continue; const c=coName(MV[k].sup), b=brandOf(k);
+  if(oF.co&&c!==oF.co)continue; if(oF.br&&b!==oF.br)continue; if(q&&!(k+' '+MV[k].name).toLowerCase().includes(q))continue;
+  for(const x of CALC[k].days){ if(!x.oq)continue; const mm=x.d.slice(0,7); (TRM[b]=TRM[b]||{})[mm]=((TRM[b]||{})[mm]||0)+x.oq; if(mm===oF.m)R.push({d:x.d,k,name:MV[k].name,br:b,co:c,q:x.oq,a:x.oa,u:x.u}) } }
+ R.sort((a,b)=>b.d.localeCompare(a.d)||brIdx(a.br)-brIdx(b.br));
+ const bs=brOrder().filter(b=>TRM[b]);
+ $('#invRoot').innerHTML=head('기타출고',`${oF.m.replace('-','년 ')}월 · 퀵 · 샘플 · 재발송 등 배송 외 출고 · 일평균 · 발주 권고에는 넣지 않습니다`)+`
+ <div class="filters"><select id="oM" aria-label="월">${ms.slice().reverse().map(x=>`<option value="${x}" ${x===oF.m?'selected':''}>${x.replace('-','년 ')}월</option>`).join('')}</select><select id="oCo" aria-label="법인">${opt(coList(),oF.co,'전체 법인')}</select><select id="oBr" aria-label="브랜드">${opt(brList(),oF.br,'전체 브랜드')}</select><input id="oQ" placeholder="상품코드 · 상품명" value="${esc(oF.q)}"><button class="b" id="oX">엑셀</button></div>
+ <div class="kpis"><div class="kpi"><span>기타출고 건 (품목 · 일)</span><b>${R.length}</b></div><div class="kpi"><span>기타출고 수량</span><b>${f0(R.reduce((s,r)=>s+r.q,0))}</b></div><div class="kpi cst"><span>기타출고 원가 (${UNIT})</span><b>${fA(R.reduce((s,r)=>s+r.a,0))}</b></div><div class="kpi"><span>품목 수</span><b>${new Set(R.map(r=>r.k)).size}</b></div></div>
+ <div class="tbl tall"><table data-sb="1"><thead><tr><th>일자</th><th>브랜드</th><th>품목</th><th>법인</th><th class="n">수량</th>${AM?'<th class="n">원가</th>':''}</tr></thead><tbody>${R.map(r=>`<tr><td>${r.d}</td><td>${esc(r.br)}</td><td>${nmL(r.k)} <span class="note">${esc(r.k)}</span></td><td>${esc(r.co)}</td><td class="n">${f0(r.q)}</td>${AM?`<td class="n ${r.u?'unk':''}">${fA(r.a)}</td>`:''}</tr>`).join('')||`<tr><td colspan="6">이 달 기타출고가 없습니다.</td></tr>`}</tbody></table></div>
+ <h3 style="margin-top:16px">브랜드별 월 추이 (수량)</h3><div class="tbl"><table data-sb="1"><thead><tr><th>브랜드</th>${ms.map(m=>`<th class="n">${+m.slice(5)}월</th>`).join('')}</tr></thead><tbody>${bs.map(b=>`<tr><td>${esc(b)}</td>${ms.map(m=>`<td class="n">${TRM[b][m]?f0(TRM[b][m]):'–'}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${ms.length+1}">기타출고가 없습니다.</td></tr>`}</tbody></table></div>`;
+ $('#oM').onchange=e=>{oF.m=e.target.value;vEtc()};$('#oCo').onchange=e=>{oF.co=e.target.value;vEtc()};$('#oBr').onchange=e=>{oF.br=e.target.value;vEtc()};$('#oQ').onchange=e=>{oF.q=e.target.value;vEtc()};
+ $('#oX').onclick=()=>saveX(`기타출고_${oF.m}.xlsx`,{'기타출고':[['일자','브랜드','상품코드','품목','법인','수량',...(canCost()?['원가(원)']:[])],...R.map(r=>[r.d,r.br,r.k,r.name,r.co,r.q,...(canCost()?[Math.round(r.a)]:[])])],'월별':[['브랜드',...ms],...bs.map(b=>[b,...ms.map(m=>TRM[b][m]||0)])]});
+}
 
 /* ---------- 품목 일별 수불 ---------- */
 let dSel=null,dF={from:'',to:''};
 function vDay(){ if(needData())return;
  if(!dF.from){dF={from:T.slice(0,4)+'-01-01',to:T}}
- const keys=Object.keys(MV).sort();
+ const keys=Object.keys(MV).filter(live).sort();
  $('#invRoot').innerHTML=head('품목 일별 수불','품목 하나의 일별 수량 · 선입선출 금액과 남은 입고분을 봅니다')+`
  <div class="filters"><input id="dQ" list="dL" placeholder="상품코드 또는 상품명" style="min-width:300px" value="${dSel&&MV[dSel]?esc(dSel+' '+MV[dSel].name):''}"><datalist id="dL">${keys.map(k=>`<option value="${esc(k+' '+MV[k].name)}">`).join('')}</datalist>
  <label>시작 <input type="date" id="dFr" value="${dF.from}"></label><label>종료 <input type="date" id="dTo" value="${dF.to}"></label></div><div id="dB"></div>`;
@@ -2078,15 +2311,15 @@ function vDay(){ if(needData())return;
 /* ---------- 입고 정보 입력 (단가 · 소비기한) ---------- */
 let cF={kind:'',co:'',br:'',q:'',miss:true},pending={};const wq={};
 function costRows(){ const R=[];
- for(const k in CALC){ const m=MV[k],c=CALC[k],co=coName(m.sup),cc=COST[k]||{};
-  if(c.open.q!==0)R.push({kind:'open',kn:'기초 (1/1)',d:(m.first||'').slice(0,4)+'-01-01',k,name:m.name,co,q:c.open.q,v:cc.open??null,e:cc.oe||OPEN_EXP});
-  for(const x of c.days)if(x.iq>0)R.push({kind:'in',kn:'입고',d:x.d,k,name:m.name,co,q:x.iq,v:cc.r?.[x.d]??null,e:cc.e?.[x.d]||''}); }
+ for(const k in CALC){ if(!live(k))continue; const m=MV[k],c=CALC[k],co=coName(m.sup),cc=COST[k]||{};
+  if(c.open.q!==0)R.push({kind:'open',kn:'기초 (1/1)',d:(m.first||'').slice(0,4)+'-01-01',k,name:m.name,co,q:c.open.q,v:cc.open??null,e:cc.oe||OPEN_EXP,h:(cc.h||[]).filter(h=>h.d==='기초')});
+  for(const x of c.days)if(x.iq>0)R.push({kind:'in',kn:'입고',d:x.d,k,name:m.name,co,q:x.iq,v:cc.r?.[x.d]??null,e:cc.e?.[x.d]||'',h:(cc.h||[]).filter(h=>h.d===x.d)}); }
  return R;
 }
 function vCost(){ if(needData())return;
  const all=costRows(), n=(kd,f)=>all.filter(r=>r.kind===kd&&(f==='v'?r.v==null:!r.e)).length;
- $('#invRoot').innerHTML=head('입고 단가 · 소비기한','1월 1일 기초와 입고 건마다 단가(개당, 원)와 소비기한을 넣습니다 · 넣는 즉시 저장되고 선입선출 금액 · 소비기한 단계가 다시 계산됩니다 · 기초 건의 입고일은 1월 1일로 봅니다')+`
- <div class="kpis"><div class="kpi"><span>기초 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('open','v')} · ${n('open','e')}<small> / ${all.filter(r=>r.kind==='open').length}</small></b></div><div class="kpi"><span>입고 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('in','v')} · ${n('in','e')}<small> / ${all.filter(r=>r.kind==='in').length}</small></b></div><div class="kpi cstp"><span>입고 금액 (입력분)</span><b>${fM(all.filter(r=>r.kind==='in').reduce((s,r)=>s+(r.v||0)*r.q,0))}<small> 원</small></b></div></div>
+ $('#invRoot').innerHTML=head('단가 · 소비기한','기초(1/1)와 이지어드민 입고 건마다 단가(개당, 원)와 소비기한을 넣습니다 · 넣는 즉시 저장됩니다','단가를 바꾸면 이전 금액 · 바꾼 사람 · 시각이 변경 이력에 남고, 단가 칸 옆 “변경 n”에 마우스를 올리면 보입니다. 선입선출 금액 · 소비기한 단계는 바로 다시 계산됩니다. 기초 건의 입고일은 1월 1일로 봅니다. 발주 · 입고 탭의 입고 확정에서 넣은 단가 · 소비기한도 여기에 같이 보입니다.')+`
+ <div class="kpis"><div class="kpi"><span>기초 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('open','v')} · ${n('open','e')}<small> / ${all.filter(r=>r.kind==='open').length}</small></b></div><div class="kpi"><span>입고 단가 · 소비기한 미입력</span><b style="color:var(--amb)">${n('in','v')} · ${n('in','e')}<small> / ${all.filter(r=>r.kind==='in').length}</small></b></div><div class="kpi cstp"><span>입고 금액 (입력분)</span><b>${fA(all.filter(r=>r.kind==='in').reduce((s,r)=>s+(r.v||0)*r.q,0))}<small> ${UNIT}</small></b></div></div>
  <div class="filters"><select id="cK"><option value="">기초 + 입고</option><option value="open" ${cF.kind==='open'?'selected':''}>기초 (1/1)</option><option value="in" ${cF.kind==='in'?'selected':''}>입고</option></select><select id="cCo">${opt(coList(),cF.co,'전체 법인')}</select><select id="cBr" aria-label="브랜드">${opt(brList(),cF.br,'전체 브랜드')}</select><input id="cQ" placeholder="상품코드 · 상품명" value="${esc(cF.q)}"><label><input type="checkbox" id="cM" ${cF.miss?'checked':''}> 미입력만</label><button class="b" id="cT">입력 서식 다운로드</button><button class="b" id="cU">입력 서식 업로드</button><input type="file" id="cFi" accept=".xlsx,.xls" hidden></div>
  <div id="cMsg"></div><div class="tbl tall"><table id="coT"></table></div>`;
  $('#cK').onchange=e=>{cF.kind=e.target.value;draw()};$('#cCo').onchange=e=>{cF.co=e.target.value;draw()};$('#cBr').onchange=e=>{cF.br=e.target.value;draw()};$('#cQ').oninput=e=>{cF.q=e.target.value;draw()};$('#cM').onchange=e=>{cF.miss=e.target.checked;draw()};
@@ -2096,7 +2329,7 @@ function vCost(){ if(needData())return;
   const t=$('#coT');
   t.innerHTML=`<thead><tr><th data-k="kn">구분</th><th data-k="d">입고일</th><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="co">법인</th><th class="n" data-k="q">수량</th><th class="n cstp" data-k="v">단가 (원)</th><th class="n cstp">금액</th><th data-k="e">소비기한</th></tr></thead><tbody></tbody>`;
   sortRows(t,'co',rows,draw);
-  t.tBodies[0].innerHTML=rows.slice(0,600).map(r=>`<tr class="${(canPrice()&&r.v==null)||!r.e?'miss':''}"><td>${r.kn}</td><td>${r.d}</td><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td>${esc(r.co)}</td><td class="n">${f0(r.q)}</td><td class="n cstp"><input class="cost ${r.v==null?'empty':''}" inputmode="decimal" value="${r.v??''}" data-f="v" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 단가"></td><td class="n cstp">${r.v==null?'':f0(r.v*r.q)}</td><td style="white-space:nowrap">${Array.isArray(r.e)?`<span class="splt">${r.e.map(x=>`<span>${x.e||'<span class=unk>미입력</span>'} · ${f0(x.q)}</span>`).join('')}</span>`:`<input type="date" class="cost ${r.e?'':'empty'}" value="${r.e}" data-f="e" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 소비기한" style="width:140px;text-align:left">`} <button class="b sm spl" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" data-q="${r.q}">${Array.isArray(r.e)?'수정':'나누기'}</button></td></tr>`).join('')||`<tr><td colspan="9">${cF.miss?'미입력 항목이 없습니다.':'해당 항목이 없습니다.'}</td></tr>`;
+  t.tBodies[0].innerHTML=rows.slice(0,600).map(r=>`<tr class="${(canPrice()&&r.v==null)||!r.e?'miss':''}"><td>${r.kn}</td><td>${r.d}</td><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td>${esc(r.co)}</td><td class="n">${f0(r.q)}</td><td class="n cstp"><input class="cost ${r.v==null?'empty':''}" inputmode="decimal" value="${r.v??''}" data-f="v" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 단가">${r.h&&r.h.length?` <span class="st s-none" title="${esc(r.h.map(h=>`${(h.at||'').slice(0,16).replace('T',' ')} ${h.by||''}: ${h.o==null?'없음':f0(h.o)} → ${h.n==null?'지움':f0(h.n)}`).join('\n'))}">변경 ${r.h.length}</span>`:''}</td><td class="n cstp">${r.v==null?'':f0(r.v*r.q)}</td><td style="white-space:nowrap">${Array.isArray(r.e)?`<span class="splt">${r.e.map(x=>`<span>${x.e||'<span class=unk>미입력</span>'} · ${f0(x.q)}</span>`).join('')}</span>`:`<input type="date" class="cost ${r.e?'':'empty'}" value="${r.e}" data-f="e" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" aria-label="${esc(r.name)} 소비기한" style="width:140px;text-align:left">`} <button class="b sm spl" data-kind="${r.kind}" data-k="${esc(r.k)}" data-d="${r.d}" data-q="${r.q}">${Array.isArray(r.e)?'수정':'나누기'}</button></td></tr>`).join('')||`<tr><td colspan="9">${cF.miss?'미입력 항목이 없습니다.':'해당 항목이 없습니다.'}</td></tr>`;
   if(rows.length>600)t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="9">${rows.length}건 중 600건 표시 — 법인 · 검색으로 좁혀 주세요</td></tr></tfoot>`);
  }
  $('#coT').addEventListener('click',e=>{const b=e.target.closest('button.spl');if(!b||!canInv())return;const tr=b.closest('tr');if(tr.nextElementSibling&&tr.nextElementSibling.classList.contains('splitrow')){tr.nextElementSibling.remove();return}
@@ -2135,6 +2368,8 @@ function vCost(){ if(needData())return;
 }
 function setCost(k,kind,d,f,v){ if(f==='v'?!canPrice():!canInv())return;
  const c=JSON.parse(JSON.stringify(COST[k]||{open:null,r:{},oe:null,e:{}}));c.r=c.r||{};c.e=c.e||{};
+ const old=f==='v'?(kind==='open'?c.open:c.r[d]):null;
+ if(f==='v'&&old!=null&&old!==v){c.h=(c.h||[]).concat({d:kind==='open'?'기초':d,o:old,n:v,by:me?me.nm:'',at:new Date().toISOString()}).slice(-40);if(typeof audit==='function')try{audit('inv_cost',k,'단가 변경',`${MV[k]?.name||k} ${kind==='open'?'기초':d} ${old} → ${v??'지움'}`)}catch(e){}}
  if(kind==='open'){if(f==='v')c.open=v;else c.oe=v}else{const o=f==='v'?c.r:c.e;if(v==null)delete o[d];else o[d]=v}
  COST[k]=c;pending[k]=c;queueWrite(k);recalc();
 }
@@ -2143,59 +2378,141 @@ function queueWrite(k){ if(!db){delete pending[k];return} if(wq[k]){wq[k].again=
   try{await db.collection('cost').doc(k).set(body)}catch(e){await new Promise(r=>setTimeout(r,900));try{await db.collection('cost').doc(k).set(body)}catch(e2){alert('저장하지 못했습니다: '+(e2.message||e2.code))}}}while(wq[k].again);delete wq[k];delete pending[k]})();
 }
 
-/* ---------- 발주 관리 ---------- */
-let poPre=null;
-let poF={co:'',br:''};
+/* ---------- 입고 관리: 발주 · 입고 (분할 입고 · 미납 종결 · 초과 입고 · 실제 리드타임) ---------- */
+let poPre=null, poF={co:'',br:'',st:'open',q:''}, poOpen=null;
+const ezIn=(k,from)=>{const R=MV[k]?.rows||{};return Object.keys(R).filter(d=>(!from||d>=from)&&R[d][0]>0).sort().map(d=>({d,q:R[d][0]}))};
+const poRaw=x=>{const o={code:x.code,qty:+x.qty||0,ordD:x.ordD||'',inD:x.inD||'',lt:x.lt??x.plt??null,no:x.no||'',st:x.st==='취소'?'취소':'예정',rc:(x.rc||[]).map(r=>({d:r.d,q:+r.q||0,by:r.by||'',at:r.at||'',...(r.mig?{mig:1}:{})})),by:x.by||'',at:x.at||''};if(x.close)o.close=x.close;return o};
+async function savePo(id,x){ const o=poRaw(x); o.upd=new Date().toISOString(); o.updBy=me?me.nm:''; PO[id]=o; recalc(); if(db)try{await db.collection('po').doc(id).set(o)}catch(e){alert('발주를 저장하지 못했습니다')} }
 function vPo(){ if(needData())return;
- const keys=Object.keys(MV).sort(), L=Object.entries(PO).map(([id,p])=>({id,...p,name:MV[p.code]?.name||p.code})).filter(p=>(!poF.co||(MV[p.code]&&coName(MV[p.code].sup)===poF.co))&&(!poF.br||brandOf(p.code)===poF.br)).sort((a,b)=>(a.st==='예정'?0:1)-(b.st==='예정'?0:1)||String(a.inD).localeCompare(String(b.inD)));
- const pre=poPre||{};poPre=null; const k0=pre.code||'';
- $('#invRoot').innerHTML=head('발주 관리','더존 품의가 승인된 발주를 등록하면 입고 예정 수량 · 날짜가 재고보유일수와 발주 권고에 바로 반영됩니다 · 이지어드민에 입고가 잡히면 입고 완료로 바꿉니다')+`
+ const q=poF.q.trim().toLowerCase(), all=poList().filter(p=>!MV[p.code]||live(p.code));
+ const ltS=Object.values(MET).filter(m=>m.rl>0&&Math.abs(m.rl-m.lt)>=7);
+ const okF=p=>(!poF.co||(MV[p.code]&&coName(MV[p.code].sup)===poF.co))&&(!poF.br||brandOf(p.code)===poF.br)&&(!q||(p.code+' '+(MV[p.code]?.name||'')+' '+(p.no||'')).toLowerCase().includes(q));
+ const stF=p=>poF.st==='open'?p.open:poF.st==='late'?p.late:poF.st==='lt'?ltS.some(m=>m.k===p.code):!poF.st||poF.st==='all'?true:p.state===poF.st;
+ const L=all.filter(p=>okF(p)&&stF(p)).sort((a,b)=>(b.late-a.late)||(a.open===b.open?0:a.open?-1:1)||String(a.inD).localeCompare(String(b.inD)));
+ const pre=poPre||{};poPre=null; const k0=pre.code&&MV[pre.code]?pre.code:'';
+ const keys=Object.keys(MV).filter(k=>live(k)&&stOf(k)!=='취급중단').sort((a,b)=>brIdx(brandOf(a))-brIdx(brandOf(b))||(a<b?-1:1));
+ const O=all.filter(p=>p.open), thisM=T.slice(0,7);
+ $('#invRoot').innerHTML=head('발주 · 입고',`발주를 등록하면 입고 예정이 발주 권고에 바로 잡히고, 입고 확정을 여러 번 나눠 넣을 수 있습니다`,`입고 예정일 = 발주일 + 품목 리드타임 (품목 → 브랜드 → 기본값). 직접 바꿀 수 있고 옆에 리드타임 일수가 보입니다.<br>입고 확정은 발주 한 건에 여러 번 넣습니다. 남은 수량(발주 − 입고 합계)이 계속 입고 예정으로 잡힙니다. 덜 들어와 더는 안 들어오면 <b>미납 종결</b>(사유 필수), 발주 수량보다 많이 들어오면 <b>초과 입고</b>로 남습니다. 초과가 발주 수량의 ${CFG.overPct??10}%를 넘으면 한 번 더 확인합니다.<br>실제 재고 수량은 이지어드민 수불이 기준이라 입고 확정으로 재고가 두 번 늘지 않습니다. 매입은 실제 입고 수량 기준입니다.<br>실제 리드타임: 첫 입고일 − 발주일(첫 입고), 마지막 입고일 − 발주일(완료). 품목별 최근 3건 평균이 기준과 7일 이상 다르면 기준 수정을 제안합니다.`)+`
+ <div class="kpis"><div class="kpi"><span>열린 발주 (남은 수량)</span><b>${O.length}<small> 건 · ${f0(O.reduce((s,p)=>s+p.rest,0))}개</small></b></div><div class="kpi"><span>입고 지연</span><b style="color:${O.some(p=>p.late)?'var(--red)':'inherit'}">${O.filter(p=>p.late).length}</b></div><div class="kpi"><span>이번 달 입고 확정</span><b>${all.reduce((s,p)=>s+p.rc.filter(r=>!r.mig&&String(r.d).startsWith(thisM)).length,0)}<small> 회</small></b></div><div class="kpi"><span>리드타임 수정 제안</span><b style="color:${ltS.length?'var(--amb)':'inherit'}">${ltS.length}</b></div></div>
  <div class="panel"><h3>발주 등록</h3><form id="poF" class="pof">
-  <label>품목<input id="pK" list="pL" required value="${k0&&MV[k0]?esc(k0+' '+MV[k0].name):''}" style="min-width:260px"><datalist id="pL">${keys.map(k=>`<option value="${esc(k+' '+MV[k].name)}">`).join('')}</datalist></label>
-  <label>수량<input id="pQ" type="number" min="1" required value="${pre.qty||''}" style="width:110px"></label>
-  <label>발주일<input id="pO" type="date" value="${T}"></label>
-  <label>입고 예정일<input id="pI" type="date" required value="${k0?addS(T,ltOf(k0)):''}"></label>
+  <label>품목<input id="pK" list="pL" required value="${k0?esc(k0+' '+MV[k0].name):''}" style="min-width:260px"><datalist id="pL">${keys.map(k=>`<option value="${esc(k+' '+MV[k].name)}">`).join('')}</datalist></label>
+  <label>발주 수량<input id="pQ" type="number" min="1" required value="${pre.qty||''}" style="width:110px"></label>
+  <label>발주일<input id="pO" type="date" required value="${todayK()}"></label>
+  <label>입고 예정일<input id="pI" type="date" required value="${k0?addS(todayK(),ltOf(k0)):''}"></label><span class="note" id="pLt" style="align-self:end;padding-bottom:8px"></span>
   <label>품의번호<input id="pN" placeholder="더존 문서번호" style="width:140px"></label>
-  <button class="b p">등록</button></form><div id="pM"></div><p class="note" id="pHint">${k0&&MET[k0]?`권장 ${f0(MET[k0].sug)}개 · 리드타임 ${MET[k0].lt}일 · MOQ ${f0(MET[k0].moq)}`:''}</p></div>
- <div class="filters" style="margin-top:10px"><select id="poCo" aria-label="법인">${opt(coList(),poF.co,'전체 법인')}</select><select id="poBr" aria-label="브랜드">${opt(brList(),poF.br,'전체 브랜드')}</select></div><div class="tbl"><table data-sb="1"><thead><tr><th>상태</th><th>품목</th><th class="n">수량</th><th>발주일</th><th>입고 예정일</th><th>품의번호</th><th>등록</th><th></th></tr></thead><tbody>${L.map(p=>`<tr><td><span class="st ${p.st==='예정'?'s-soon':p.st==='입고 완료'?'s-ok':'s-none'}">${p.st}</span></td><td>${esc(p.code)} ${esc(p.name)}</td><td class="n">${f0(p.qty)}</td><td>${p.ordD||''}</td><td>${p.inD||''}${p.st==='예정'&&(CALC[p.code]?.days||[]).some(x=>x.iq>0&&x.d>=p.ordD)?' <span class="st s-over">입고 발생 · 완료 처리 필요</span>':p.st==='예정'&&p.inD<T?' <span class="st s-urg">지연</span>':''}</td><td>${esc(p.no||'')}</td><td class="note">${esc(p.by||'')}</td><td>${p.st==='예정'?`<button class="b sm" data-a="done" data-id="${p.id}">입고 완료</button> <button class="b sm" data-a="cancel" data-id="${p.id}">취소</button>`:`<button class="b sm" data-a="del" data-id="${p.id}">삭제</button>`}</td></tr>`).join('')||'<tr><td colspan="8">등록된 발주가 없습니다. 현재고 · 발주 권고에서 품목을 눌러 바로 등록할 수 있습니다.</td></tr>'}</tbody></table></div>`;
- $('#poCo').onchange=e=>{poF.co=e.target.value;vPo()};$('#poBr').onchange=e=>{poF.br=e.target.value;vPo()};
- $('#pK').onchange=e=>{const k=e.target.value.split(' ')[0];if(MET[k]){$('#pQ').value=MET[k].sug||MET[k].moq;$('#pI').value=addS($('#pO').value||T,ltOf(k));$('#pHint').textContent=`권장 ${f0(MET[k].sug)}개 · 리드타임 ${MET[k].lt}일 · MOQ ${f0(MET[k].moq)}`}};
- $('#poF').onsubmit=async e=>{e.preventDefault();if(!canInv())return;const k=$('#pK').value.split(' ')[0];if(!MV[k]){$('#pM').innerHTML='<div class="msg s-urg">목록에 있는 품목을 고르세요.</div>';return}
-  const p={code:k,qty:+$('#pQ').value,ordD:$('#pO').value,inD:$('#pI').value,no:$('#pN').value.trim(),st:'예정',by:me?me.nm:'',at:new Date().toISOString()};
-  const id='p'+Date.now().toString(36);PO[id]=p;recalc();go('po');if(db){try{await db.collection('po').doc(id).set(p)}catch(e2){alert('발주를 저장하지 못했습니다')}}};
- $('#invRoot').querySelectorAll('button[data-a]').forEach(b=>b.onclick=async()=>{if(!canInv())return;const id=b.dataset.id,a=b.dataset.a;
-  if(a==='del'){delete PO[id];recalc();go('po');if(db)try{await db.collection('po').doc(id).delete()}catch(e){};return}
-  PO[id]={...PO[id],st:a==='done'?'입고 완료':'취소'};recalc();go('po');if(db)try{await db.collection('po').doc(id).set(PO[id])}catch(e){}});
+  <button class="b p">등록</button></form><div id="pM"></div><p class="note" id="pHint"></p></div>
+ ${ltS.length?`<div class="panel"><h3>리드타임 기준 수정 제안 <span class="note">최근 3건 실제 리드타임 평균이 기준과 7일 이상 차이</span></h3><div class="tbl"><table data-sb="1"><thead><tr><th>품목</th><th class="n">기준</th><th class="n">실제 평균</th><th class="n">차이</th><th></th></tr></thead><tbody>${ltS.map(m=>`<tr><td>${nmL(m.k)} <span class="note">${esc(brandOf(m.k))}</span></td><td class="n">${m.lt}일</td><td class="n">${f0(m.rl)}일</td><td class="n">${m.rl>m.lt?'+':''}${f0(m.rl-m.lt)}일</td><td>${canInv()?`<button class="b sm wr" data-setlt="${esc(m.k)}" data-v="${Math.round(m.rl)}">품목 기준을 ${Math.round(m.rl)}일로</button>`:''}</td></tr>`).join('')}</tbody></table></div></div>`:''}
+ <div class="filters" style="margin-top:10px"><select id="poSt" aria-label="상태">${[['open','열린 발주 (예정 · 부분 입고)'],['late','입고 지연'],['all','전체'],['예정','예정'],['부분 입고','부분 입고'],['입고 완료','입고 완료'],['초과 입고','초과 입고'],['미납 종결','미납 종결'],['취소','취소'],['lt','리드타임 수정 제안 품목']].map(([v,t])=>`<option value="${v}" ${poF.st===v?'selected':''}>${t}</option>`).join('')}</select><select id="poCo" aria-label="법인">${opt(coList(),poF.co,'전체 법인')}</select><select id="poBr" aria-label="브랜드">${opt(brList(),poF.br,'전체 브랜드')}</select><input id="poQ" placeholder="품목 · 품의번호" value="${esc(poF.q)}"><button class="b" id="poX">엑셀</button></div>
+ <div class="tbl tall"><table id="poT" data-sb="1"><thead><tr><th>상태</th><th>품목</th><th class="n">발주</th><th class="n">입고 합계</th><th class="n">남은 수량</th><th>발주일</th><th>입고 예정일</th><th>실제 리드타임</th><th>품의번호</th><th></th></tr></thead><tbody>${L.map(p=>{const ez=p.open?ezIn(p.code,p.ordD).filter(x=>!all.some(o=>o.code===p.code&&o.rc.some(r=>r.d===x.d))):[];
+  return `<tr data-id="${p.id}" class="${p.id===poOpen?'selr':''}"><td><span class="st ${PO_ST[p.state]}">${p.state}</span>${p.late?' <span class="st s-urg">지연</span>':''}${p.state==='초과 입고'?` <span class="note">+${f0(p.got-p.qty)}</span>`:''}</td><td>${MV[p.code]?nmL(p.code):esc(p.code)} <span class="note">${esc(p.code)}</span>${ez.length?`<br><span class="st s-over" title="${ez.map(x=>x.d+' '+x.q).join(', ')}">이지어드민 입고 ${md(ez[0].d)} ${f0(ez[0].q)}개${ez.length>1?' 외 '+(ez.length-1)+'건':''} · 확정 필요</span>`:''}</td><td class="n">${f0(p.qty)}</td><td class="n">${p.got?f0(p.got)+`<span class="note"> · ${p.rc.length}회</span>`:'–'}</td><td class="n">${p.open?`<b>${f0(p.rest)}</b>`:'–'}</td><td>${p.ordD||''}</td><td>${p.inD||''} <span class="note">${p.plt!=null?'리드타임 '+p.plt+'일':''}</span>${p.late?` <span class="note" style="color:var(--red)">${diffS(p.inD,T)}일 지남</span>`:''}</td><td>${p.lt1!=null?`첫 입고 ${p.lt1}일`:'–'}${p.ltN!=null?` · 완료 ${p.ltN}일`:''}</td><td>${esc(p.no||'')}</td><td style="white-space:nowrap">${p.open?`<button class="b sm p wr" data-pa="rc">입고 확정</button> `:p.rc.length?'<button class="b sm" data-pa="rc">입고 내역</button> ':''}${p.open&&p.got>0?'<button class="b sm wr" data-pa="close">미납 종결</button> ':''}${p.open&&p.got===0?'<button class="b sm wr" data-pa="cancel">취소</button> ':''}${['미납 종결','취소'].includes(p.state)?'<button class="b sm wr" data-pa="undo">되돌리기</button> ':''}${p.state==='취소'?'<button class="b sm wr" data-pa="del">삭제</button>':''}</td></tr>`}).join('')||'<tr><td colspan="10">해당 발주가 없습니다. 현재고 · 발주 권고에서 권장 발주량을 누르면 바로 등록할 수 있습니다.</td></tr>'}</tbody></table></div>
+ <p class="note">${all.some(p=>p.rc.some(r=>r.mig))?'v1.4에서 “입고 완료”로 바꾼 발주는 입고 예정일에 한 번 입고된 것으로 옮겨 두었습니다 (실제 리드타임 평균에서는 빠짐). ':''}입고 확정은 발주 잔량 · 리드타임 · 단가 관리용 기록이고, 재고 수량은 이지어드민 수불 그대로입니다.</p>`;
+ /* 등록 폼 */
+ let manual=false;
+ const kOf=()=>$('#pK').value.split(' ')[0];
+ const ltTxt=()=>{const k=kOf(),o=$('#pO').value,i=$('#pI').value;if(!MV[k]||!o||!i){$('#pLt').textContent='';return}const d=diffS(o,i),b=ltOf(k);$('#pLt').innerHTML=`리드타임 <b>${d}</b>일${d!==b?` · 기준 ${b}일`:''}`};
+ const hint=()=>{const k=kOf(),m=MET[k];$('#pHint').textContent=m?`권장 ${f0(m.sug)}개 · 최소 수량 ${f0(m.moq)} · 주문 단위 ${f0(m.unit)} · 현재고 ${f0(m.qty)} · 입고 예정 ${f0(m.inq)} · 일평균 ${fV(m.avg)}`:''};
+ $('#pK').onchange=()=>{const k=kOf(),m=MET[k];if(!MV[k])return;if(m)$('#pQ').value=m.sug||m.moq;if(!manual)$('#pI').value=addS($('#pO').value||todayK(),ltOf(k));ltTxt();hint()};
+ $('#pO').onchange=()=>{const k=kOf();if(MV[k]&&!manual)$('#pI').value=addS($('#pO').value,ltOf(k));ltTxt()};
+ $('#pI').onchange=()=>{manual=true;ltTxt()};
+ if(k0){ltTxt();hint()}
+ $('#poF').onsubmit=async e=>{e.preventDefault();if(!canInv())return;const k=kOf();if(!MV[k]){$('#pM').innerHTML='<div class="msg s-urg">목록에 있는 품목을 고르세요.</div>';return}
+  const qty=Math.round(+$('#pQ').value),o=$('#pO').value,i=$('#pI').value;if(!(qty>0)||!o||!i){$('#pM').innerHTML='<div class="msg s-urg">수량 · 발주일 · 입고 예정일을 넣어 주세요.</div>';return}
+  if(i<o){$('#pM').innerHTML='<div class="msg s-urg">입고 예정일이 발주일보다 빠릅니다.</div>';return}
+  const m=MET[k];if(m&&qty<m.moq&&!confirm(`최소 수량(${f0(m.moq)}개)보다 적습니다. 그대로 등록할까요?`))return;
+  const id='p'+Date.now().toString(36);await savePo(id,{code:k,qty,ordD:o,inD:i,lt:diffS(o,i),no:$('#pN').value.trim(),st:'예정',rc:[],by:me?me.nm:'',at:new Date().toISOString()});poF.st='open';go('po')};
+ $('#poSt').onchange=e=>{poF.st=e.target.value;vPo()};$('#poCo').onchange=e=>{poF.co=e.target.value;vPo()};$('#poBr').onchange=e=>{poF.br=e.target.value;vPo()};$('#poQ').onchange=e=>{poF.q=e.target.value;vPo()};
+ $('#invRoot').querySelectorAll('[data-setlt]').forEach(b=>b.onclick=async()=>{if(!canInv())return;const k=b.dataset.setlt,v=+b.dataset.v;ITEM[k]={...(ITEM[k]||{}),lt:v};recalc();if(db)try{await db.collection('item').doc(k).set({...ITEM[k],at:new Date().toISOString()})}catch(e){alert('저장하지 못했습니다')}});
+ $('#poX').onclick=()=>saveX(`발주_입고_${T}.xlsx`,{'발주':[['상태','상품코드','품목','브랜드','발주수량','입고합계','입고횟수','남은수량','발주일','입고예정일','계획 리드타임','첫 입고 리드타임','완료 리드타임','품의번호','미납 사유','등록'],...L.map(p=>[p.state+(p.late?' (지연)':''),p.code,MV[p.code]?.name||'',brandOf(p.code),p.qty,p.got,p.rc.length,p.rest,p.ordD,p.inD,p.plt??'',p.lt1??'',p.ltN??'',p.no||'',p.close?p.close.reason:'',p.by||''])],
+  '입고 내역':[['상품코드','품목','발주일','입고일','입고수량','확정한 사람'],...L.flatMap(p=>p.rc.map(r=>[p.code,MV[p.code]?.name||'',p.ordD,r.d,r.q,r.mig?'(v1.4 옮김)':r.by]))]});
+ /* 줄 버튼 */
+ $('#poT').addEventListener('click',async e=>{const b=e.target.closest('button[data-pa]');if(!b)return;const tr=b.closest('tr[data-id]'),id=tr.dataset.id,p=all.find(x=>x.id===id),a=b.dataset.pa;if(!p)return;
+  if(a==='rc'){const nx=tr.nextElementSibling;if(nx&&nx.classList.contains('rcrow')){nx.remove();poOpen=null;return}poOpen=id;rcRow(tr,p,all);return}
+  if(!canInv())return;
+  if(a==='close'){const r=prompt(`미납 종결: ${MV[p.code]?.name||p.code}\n발주 ${f0(p.qty)} · 입고 ${f0(p.got)} · 남은 ${f0(p.rest)}개를 더 받지 않습니다.\n사유를 넣어 주세요 (필수)`,'');if(r==null)return;if(!r.trim()){alert('사유를 넣어야 미납 종결할 수 있습니다.');return}
+   await savePo(id,{...p,close:{reason:r.trim(),by:me?me.nm:'',at:new Date().toISOString(),d:T,short:p.rest}});go('po');return}
+  if(a==='cancel'){if(!confirm('이 발주를 취소할까요? 입고 예정에서 빠집니다.'))return;await savePo(id,{...p,st:'취소'});go('po');return}
+  if(a==='undo'){const x={...p,st:'예정'};delete x.close;await savePo(id,x);go('po');return}
+  if(a==='del'){if(!confirm('취소된 발주를 지울까요?'))return;delete PO[id];recalc();go('po');if(db)try{await db.collection('po').doc(id).delete()}catch(e2){};return}});
+ if(poOpen){const tr=$('#poT').querySelector(`tr[data-id="${poOpen}"]`),p=all.find(x=>x.id===poOpen);if(tr&&p)rcRow(tr,p,all);else poOpen=null}
+}
+/* 입고 확정 (분할) · 입고 내역 */
+function rcRow(tr,p,all){
+ const ez=ezIn(p.code,p.ordD).filter(x=>!all.some(o=>o.code===p.code&&o.rc.some(r=>r.d===x.d))), d0=ez[0]?ez[0].d:(p.ordD&&T<p.ordD?todayK():T), q0=ez[0]?Math.min(ez[0].q,p.rest||ez[0].q):p.rest;
+ const row=document.createElement('tr');row.className='rcrow';tr.after(row);
+ const lim=p.qty*(1+(CFG.overPct??10)/100);
+ row.innerHTML=`<td colspan="10"><div class="splitbox"><b>${esc(MV[p.code]?.name||p.code)}</b> · 발주 ${f0(p.qty)} · 입고 ${f0(p.got)} · 남은 ${f0(p.rest)}개${p.close?` · 미납 종결 (${esc(p.close.reason)} · ${esc(p.close.by||'')})`:''}
+  ${p.rc.length?`<div class="tbl" style="margin-top:6px"><table><thead><tr><th>차수</th><th>입고일</th><th class="n">수량</th><th class="n">리드타임</th><th>확정</th><th></th></tr></thead><tbody>${p.rc.map((r,i)=>`<tr><td>${i+1}차</td><td>${r.d}</td><td class="n">${f0(r.q)}</td><td class="n">${p.ordD?diffS(p.ordD,r.d)+'일':''}</td><td class="note">${r.mig?'v1.4에서 옮김':esc(r.by||'')}</td><td>${canInv()&&p.state!=='취소'?`<button class="b sm wr" data-rdel="${i}">빼기</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:''}
+  ${p.open&&canInv()?`<div class="pof rcf" style="margin-top:8px"><label>입고일<input type="date" class="wr" id="rD" value="${d0}"></label><label>입고 수량<input type="number" class="wr" id="rQ" min="1" value="${q0||''}" style="width:110px"></label>${canPrice()?`<label class="cstp">단가 (원)<input class="wr" id="rV" inputmode="decimal" style="width:100px"></label>`:''}<label>소비기한<input type="date" class="wr" id="rE"></label><button class="b sm p wr" id="rOk">${p.got?(p.rc.length+1)+'차 ':''}입고 확정</button><span class="note" id="rH"></span></div>`:''}
+ </div></td>`;
+ const hint=()=>{const d=$('#rD')?.value,q=+($('#rQ')?.value||0);if(!d)return;const ezq=(MV[p.code]?.rows?.[d]||[])[0]||0,cc=COST[p.code]||{};
+  $('#rH').innerHTML=`리드타임 ${p.ordD?diffS(p.ordD,d):'–'}일 · ${ezq?`이지어드민 ${md(d)} 입고 ${f0(ezq)}개`:`<span style="color:var(--amb)">이지어드민 ${md(d)} 입고 없음 — 단가 · 소비기한은 그날 입고가 올라오면 반영</span>`}${p.got+q>p.qty?` · <b style="color:${p.got+q>lim?'var(--red)':'var(--amb)'}">초과 ${f0(p.got+q-p.qty)}개</b>`:p.got+q<p.qty?` · 남는 수량 ${f0(p.qty-p.got-q)}개는 계속 입고 예정`:' · 입고 완료'}`;
+  if($('#rV')&&cc.r&&cc.r[d]!=null&&!$('#rV').value)$('#rV').placeholder=f0(cc.r[d]);};
+ if($('#rD')){$('#rD').onchange=()=>{const ezq=(MV[p.code]?.rows?.[$('#rD').value]||[])[0]||0;if(ezq)$('#rQ').value=ezq;hint()};$('#rQ').oninput=hint;hint();
+  $('#rOk').onclick=async()=>{if(!canInv())return;const d=$('#rD').value,q=Math.round(+$('#rQ').value);if(!d||!(q>0)){alert('입고일과 수량을 넣어 주세요');return}
+   if(p.ordD&&d<p.ordD){alert('입고일이 발주일보다 빠릅니다');return}
+   if(p.got+q>lim&&!confirm(`발주 수량(${f0(p.qty)})보다 ${f0(p.got+q-p.qty)}개 많습니다 (허용 ${CFG.overPct??10}% 초과). 초과 입고로 확정할까요?`))return;
+   const raw=$('#rV')?$('#rV').value.replace(/[, ]/g,''):'',e=$('#rE').value;
+   if(raw!==''&&!(+raw>=0)){alert('단가는 0 이상의 숫자로 넣어 주세요');return}
+   await savePo(p.id,{...p,rc:p.rc.concat({d,q,by:me?me.nm:'',at:new Date().toISOString()})});
+   if(raw!==''&&canPrice())setCost(p.code,'in',d,'v',+raw); if(e)setCost(p.code,'in',d,'e',e);
+   poOpen=p.id;go('po')};}
+ row.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{if(!canInv())return;const i=+b.dataset.rdel;if(!confirm(`${i+1}차 입고(${p.rc[i].d} · ${f0(p.rc[i].q)}개)를 뺄까요?`))return;const rc=p.rc.slice();rc.splice(i,1);await savePo(p.id,{...p,rc});poOpen=p.id;go('po')});
+ if(!canCost()&&!canPrice())row.querySelectorAll('.cstp').forEach(x=>x.style.display='none');
+ lockWrite();
 }
 
-/* ---------- 품목 기준정보 ---------- */
-let mF={co:'',br:'',q:'',st:''};
+/* ---------- 품목 기준정보 (품목 · 브랜드 · 기본값) ---------- */
+let mF={co:'',br:'',q:'',st:'',tab:'item'};
+const ST3=['판매','발주중단','취급중단'];
 function vMaster(){ if(needData())return;
- $('#invRoot').innerHTML=head('품목 기준정보','리드타임은 브랜드별(기본 40일), MOQ(기본 1,000) · 안전재고 일수(기본 50일)는 상품별로 고칩니다 · 판매상태: 발주중단 = 남은 재고만 팔고 발주 권고에서 제외, 취급중단 = 조회 화면에서 제외 (수불부에는 남음)')+`
- <div class="panel"><h3>기본값</h3><div class="pof">${[['lt','기본 리드타임 (일)'],['safe','기본 안전재고 (일)'],['moq','기본 MOQ'],['cover','발주 후 확보 일수'],['over','과잉 기준 (일)']].map(([k,t])=>`<label>${t}<input type="number" min="0" data-cfg="${k}" value="${CFG[k]}" style="width:100px"></label>`).join('')}</div>
- <h3 style="margin-top:14px">브랜드 순서 · 리드타임</h3><p class="note">여기 순서가 리포트 · 현재고 · 브랜드별 실적 · 소비기한 화면의 기본 정렬 순서입니다 (처음에는 판매량 순)</p><div class="tbl" style="max-height:340px;overflow:auto"><table data-sb="1"><thead><tr><th>순서</th><th>브랜드</th><th class="n">품목</th><th class="n">리드타임 (일)</th><th></th></tr></thead><tbody>${brList().map((b,i,A)=>`<tr><td>${i+1}</td><td><b>${esc(b)}</b></td><td class="n">${Object.keys(MV).filter(k=>brandOf(k)===b).length}</td><td class="n"><input class="cost" type="number" min="0" data-blt="${esc(b)}" value="${(CFG.blt||{})[b]??CFG.lt}" style="width:80px"></td><td><button class="b sm" data-bmv="${i}" data-dir="-1" ${i?'':'disabled'} aria-label="위로">▲</button> <button class="b sm" data-bmv="${i}" data-dir="1" ${i<A.length-1?'':'disabled'} aria-label="아래로">▼</button></td></tr>`).join('')}</tbody></table></div></div>
- <div class="filters"><select id="mCo">${opt(coList(),mF.co,'전체 법인')}</select><select id="mBr">${opt(brList(),mF.br,'전체 브랜드')}</select><select id="mSt"><option value="">전체 상태</option>${[['nob','브랜드 미지정 · 추정'],['판매','판매'],['발주중단','발주중단'],['취급중단','취급중단']].map(([v,t])=>`<option value="${v}" ${mF.st===v?'selected':''}>${t}</option>`).join('')}</select><input id="mQ" placeholder="상품코드 · 상품명" value="${esc(mF.q)}"><button class="b" id="mX">엑셀</button></div>
- <div class="tbl tall"><table id="maT"></table></div>`;
- const saveCfg=async()=>{recalc();if(db)try{await db.collection('cfg').doc('main').set(JSON.parse(JSON.stringify(CFG)))}catch(e){alert('저장하지 못했습니다')}};
- $('#invRoot').querySelectorAll('input[data-cfg]').forEach(i=>i.onchange=()=>{if(!canInv())return;CFG[i.dataset.cfg]=+i.value||0;saveCfg()});
- $('#invRoot').querySelectorAll('[data-bmv]').forEach(b=>b.onclick=()=>{if(!canInv())return;const o=brList().slice(),i=+b.dataset.bmv,j=i+(+b.dataset.dir);[o[i],o[j]]=[o[j],o[i]];CFG.border=o;BRO=null;saveCfg();vMaster()});
- $('#invRoot').querySelectorAll('input[data-blt]').forEach(i=>i.onchange=()=>{if(!canInv())return;CFG.blt={...(CFG.blt||{}),[i.dataset.blt]:+i.value||CFG.lt};saveCfg()});
+ const tab=mF.tab||'item';
+ $('#invRoot').innerHTML=head('품목 기준정보','리드타임 · 안전재고 · 확보일수 · 최소 수량 · 주문 단위는 품목 → 브랜드 → 기본값 순으로 적용 · 칸을 비우면 위 단계 값을 씁니다',`판매상태: 발주중단 = 남은 재고만 팔고 발주 권고에서 빠짐, 취급중단 = 조회 화면에서 빠짐 (수불부에는 남음).<br>브랜드를 <b>${EXB}</b>로 지정한 품목은 오늘 할 일 · 현재고 · 발주 권고 · 입고 관리 · 소비기한 · 월간 수불 · 브랜드별 실적 · 금액 합계 · 엑셀에서 모두 빠지고, 이 화면에서만 보입니다.<br>최소 수량(MOQ) = 공급처가 받는 최소 발주 수량, 주문 단위 = 발주 수량을 맞춰야 하는 묶음 (기본 1개).`)+`
+ <div class="seg" style="margin:0 0 10px">${[['item','품목'],['brand','브랜드 순서 · 기준'],['cfg','기본값']].map(([k,t])=>`<button type="button" class="b ${tab===k?'p':''}" data-mt="${k}">${t}</button>`).join('')}</div><div id="maB"></div>`;
+ $('#invRoot').querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{mF.tab=b.dataset.mt;vMaster()});
+ const B=$('#maB');
+ if(tab==='cfg'){
+  B.innerHTML=`<div class="panel"><div class="pof">${[['lt','기본 리드타임 (일)'],['safe','기본 안전재고 (일)'],['cover','발주 후 확보일수 (일)'],['moq','기본 최소 수량 (MOQ)'],['unit','기본 주문 단위 (개)'],['over','과잉 기준 (일)'],['overPct','초과 입고 허용 (%)']].map(([k,t])=>`<label>${t}<input type="number" min="0" class="wr" data-cfg="${k}" value="${CFG[k]??''}" style="width:110px"></label>`).join('')}</div>
+   <p class="note" style="margin-top:8px">확보일수 = 발주한 물건이 들어온 뒤 몇 일치 판매를 더 버틸지. 과잉 = 보유일수가 이 값보다 길면 과잉. 초과 입고 허용 = 입고 합계가 발주 수량보다 이 비율 넘게 많으면 확정할 때 한 번 더 묻습니다.</p></div>`;
+  B.querySelectorAll('input[data-cfg]').forEach(i=>i.onchange=()=>{if(!canInv())return;const v=+i.value;if(!(v>=0)){i.value=CFG[i.dataset.cfg];return}CFG[i.dataset.cfg]=i.dataset.cfg==='unit'?Math.max(1,v):v;recalc();cfgSave()});
+  return; }
+ if(tab==='brand'){
+  const bs=brOrder(), cnt={};
+  for(const k in MV){const b=brandOf(k),s=stOf(k);(cnt[b]=cnt[b]||{n:0,'판매':0,'발주중단':0,'취급중단':0}).n++;cnt[b][s]=(cnt[b][s]||0)+1}
+  const F=[['blt','리드타임 (일)','lt'],['bsafe','안전재고 (일)','safe'],['bcover','확보일수 (일)','cover'],['bmoq','최소 수량','moq'],['bunit','주문 단위','unit']];
+  B.innerHTML=`<p class="note">왼쪽 손잡이(⠿)를 잡고 끌어 순서를 바꿉니다 (키보드: 손잡이에서 Alt + ↑ ↓). 이 순서가 모든 화면의 기본 정렬입니다. 칸을 비우면 기본값(흐린 숫자)을 씁니다.</p>
+  <div class="tbl tall"><table id="brO" data-sb="1"><thead><tr><th style="width:60px">순서</th><th>브랜드</th><th class="n">품목</th><th class="n">판매중</th><th class="n">발주중단</th><th class="n">취급중단</th>${F.map(f=>`<th class="n">${f[1]}</th>`).join('')}</tr></thead><tbody>${bs.map((b,i)=>{const c=cnt[b]||{n:0};return `<tr draggable="${canInv()}" data-b="${esc(b)}" class="${b===EXB?'exb':''}"><td><button type="button" class="hdl wr" aria-label="${esc(b)} 순서 이동 (Alt + 위 · 아래)" title="끌어서 순서 바꾸기">⠿</button> ${i+1}</td><td><b>${esc(b)}</b>${b===EXB?' <span class="st s-none">모든 실적에서 제외</span>':''}</td><td class="n">${c.n}</td><td class="n">${c['판매']||0}</td><td class="n">${c['발주중단']||0}</td><td class="n">${c['취급중단']||0}</td>${F.map(([f,,d])=>{const v=(CFG[f]||{})[b];return `<td class="n"><input class="cost wr" type="number" min="0" data-bf="${f}" data-b="${esc(b)}" value="${v??''}" placeholder="${f0(CFG[d]??(d==='unit'?1:''))}" style="width:84px"></td>`}).join('')}</tr>`}).join('')}</tbody></table></div>`;
+  const save=o=>{CFG.border=o;BRO=null;recalc();cfgSave();vMaster()};
+  B.querySelectorAll('input[data-bf]').forEach(i=>i.onchange=()=>{if(!canInv())return;const f=i.dataset.bf,b=i.dataset.b,o={...(CFG[f]||{})};if(i.value==='')delete o[b];else{const v=+i.value;if(!(v>=0))return;o[b]=f==='bunit'?Math.max(1,v):v}CFG[f]=o;recalc();cfgSave()});
+  const tb=$('#brO').tBodies[0];let drag=null;
+  tb.addEventListener('dragstart',e=>{const tr=e.target.closest('tr[data-b]');if(!tr||!canInv())return;drag=tr;tr.classList.add('drag');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',tr.dataset.b)}catch(x){}});
+  tb.addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();const tr=e.target.closest('tr[data-b]');if(!tr||tr===drag)return;const r=tr.getBoundingClientRect();tr.parentNode.insertBefore(drag,e.clientY<r.top+r.height/2?tr:tr.nextSibling)});
+  tb.addEventListener('dragend',()=>{if(!drag)return;drag.classList.remove('drag');drag=null;const o=[...tb.querySelectorAll('tr[data-b]')].map(t=>t.dataset.b);if(o.join('|')!==bs.join('|'))save(o)});
+  tb.querySelectorAll('.hdl').forEach(h=>h.onkeydown=e=>{if(!e.altKey||!['ArrowUp','ArrowDown'].includes(e.key)||!canInv())return;e.preventDefault();const b=h.closest('tr').dataset.b,o=bs.slice(),i=o.indexOf(b),j=i+(e.key==='ArrowUp'?-1:1);if(j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];save(o);setTimeout(()=>{const x=$('#brO')?.querySelector(`tr[data-b="${CSS.escape(b)}"] .hdl`);x&&x.focus()},50)});
+  return; }
+ /* 품목 */
+ const bl=brOrder().filter(b=>b!=='(미지정)'); if(!bl.includes(EXB))bl.push(EXB);
+ const allCo=[...new Set(Object.keys(MV).map(k=>coName(MV[k].sup)))].sort();
+ B.innerHTML=`<div class="filters"><select id="mCo" aria-label="법인">${opt(allCo,mF.co,'전체 법인')}</select><select id="mBr" aria-label="브랜드">${opt(brOrder(),mF.br,'전체 브랜드')}</select><select id="mSt" aria-label="상태"><option value="">전체 상태</option>${[['nob','브랜드 미지정 · 추정'],['판매','판매'],['발주중단','발주중단'],['취급중단','취급중단'],['exb',EXB]].map(([v,t])=>`<option value="${v}" ${mF.st===v?'selected':''}>${t}</option>`).join('')}</select><input id="mQ" placeholder="상품코드 · 상품명" value="${esc(mF.q)}"><button class="b" id="mX">엑셀</button></div>
+ <datalist id="mBL">${bl.map(b=>`<option value="${esc(b)}">`).join('')}</datalist><div class="tbl tall"><table id="maT"></table></div>`;
  $('#mCo').onchange=e=>{mF.co=e.target.value;draw()};$('#mBr').onchange=e=>{mF.br=e.target.value;draw()};$('#mSt').onchange=e=>{mF.st=e.target.value;draw()};$('#mQ').oninput=e=>{mF.q=e.target.value;draw()};
+ const NF=[['lt','리드타임',k=>bv_(k,'blt')??CFG.lt],['safe','안전재고',k=>bv_(k,'bsafe')??CFG.safe],['cover','확보일수',k=>bv_(k,'bcover')??CFG.cover],['moq','최소 수량',k=>bv_(k,'bmoq')??CFG.moq],['unit','주문 단위',k=>bv_(k,'bunit')??(CFG.unit||1)]];
  let rows=[];
  function draw(){ const q=mF.q.trim().toLowerCase();
-  rows=Object.keys(MV).map(k=>({k,name:MV[k].name,sup:MV[k].sup,co:coName(MV[k].sup),br:brandOf(k),guess:!(ITEM[k]&&ITEM[k].brand),lt:ltOf(k),ltOv:ITEM[k]?.lt!=null&&ITEM[k]?.lt!=='',moq:moqOf(k),safe:safeOf(k),st:stOf(k),stG:stGuess(k),qty:MET[k]?.qty??0}))
-   .filter(r=>(!mF.co||r.co===mF.co)&&(!mF.br||r.br===mF.br)&&(!mF.st||(mF.st==='nob'?(r.guess||r.br==='(미지정)'):r.st===mF.st))&&(!q||(r.k+' '+r.name).toLowerCase().includes(q)));
-  if(!SORT.ma)rows.sort((a,b)=>a.k<b.k?-1:1);
+  rows=Object.keys(MV).map(k=>({k,name:MV[k].name,sup:MV[k].sup,co:coName(MV[k].sup),br:brandOf(k),guess:!(ITEM[k]&&ITEM[k].brand),lt:ltOf(k),safe:safeOf(k),cover:coverOf(k),moq:moqOf(k),unit:unitOf(k),st:stOf(k),stG:stGuess(k),qty:qtyOf(k)}))
+   .filter(r=>(!mF.co||r.co===mF.co)&&(!mF.br||r.br===mF.br)&&(!mF.st||(mF.st==='nob'?(r.guess||r.br==='(미지정)'):mF.st==='exb'?r.br===EXB:r.st===mF.st))&&(!q||(r.k+' '+r.name).toLowerCase().includes(q)));
+  if(!SORT.ma)rows.sort((a,b)=>brIdx(a.br)-brIdx(b.br)||(a.k<b.k?-1:1));
   const t=$('#maT');
-  t.innerHTML=`<thead><tr><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="sup">공급처 · 취급처</th><th data-k="co">법인</th><th data-k="br">브랜드</th><th class="n" data-k="lt">리드타임 (일)</th><th class="n" data-k="safe">안전재고 (일)</th><th class="n" data-k="moq">MOQ</th><th data-k="st">판매상태</th><th class="n" data-k="qty">현재고</th></tr></thead><tbody></tbody>`;
+  t.innerHTML=`<thead><tr><th data-k="k">코드</th><th data-k="name">품목</th><th data-k="sup">공급처 · 취급처</th><th data-k="co">법인</th><th data-k="br">브랜드</th>${NF.map(([f,h])=>`<th class="n" data-k="${f}">${h}</th>`).join('')}<th data-k="st">판매상태</th><th class="n" data-k="qty">현재고</th></tr></thead><tbody></tbody>`;
   sortRows(t,'ma',rows,draw);
-  t.tBodies[0].innerHTML=rows.map(r=>`<tr><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td class="note">${esc(r.sup)}${MV[r.k].src==='manual'?` · ${esc(MV[r.k].wh||'수기')}`:''}</td><td>${esc(r.co)}</td><td><input class="cost ${r.guess?'guess':''}" data-f="brand" data-k="${esc(r.k)}" value="${esc(r.br==='(미지정)'?'':r.br)}" placeholder="입력" style="width:110px;text-align:left" title="${r.guess?'상품명에서 추정':''}"></td><td class="n"><input class="cost ${r.ltOv?'':'guess'}" type="number" min="0" data-f="lt" data-k="${esc(r.k)}" value="${r.lt}" style="width:80px" title="${r.ltOv?'상품별 지정':'브랜드 · 기본값'}"></td><td class="n"><input class="cost" type="number" min="0" data-f="safe" data-k="${esc(r.k)}" value="${r.safe}" style="width:80px"></td><td class="n"><input class="cost" type="number" min="0" data-f="moq" data-k="${esc(r.k)}" value="${r.moq}" style="width:90px"></td><td><select data-f="status" data-k="${esc(r.k)}">${['판매','발주중단','취급중단'].map(s=>`<option ${s===r.st?'selected':''}>${s}</option>`).join('')}</select>${r.stG&&r.st!=='판매'?' <span class="note">추정</span>':''}</td><td class="n">${f0(r.qty)}</td></tr>`).join('');
-  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="10">${rows.length}품목 · 기울어진 글씨 = 상품명 추정 브랜드 · 브랜드에서 가져온 리드타임 (상품별로 넣으면 바로 저장)</td></tr></tfoot>`);
+  t.tBodies[0].innerHTML=rows.map(r=>`<tr class="${r.br===EXB?'exb':''}"><td>${esc(r.k)}</td><td>${esc(r.name)}</td><td class="note">${esc(r.sup)}${MV[r.k].src==='manual'?` · ${esc(MV[r.k].wh||'수기')}`:''}</td><td>${esc(r.co)}</td><td><input class="cost wr ${r.guess?'guess':''}" list="mBL" data-f="brand" data-k="${esc(r.k)}" value="${esc(r.br==='(미지정)'?'':r.br)}" placeholder="입력" style="width:110px;text-align:left" title="${r.guess?'상품명에서 추정':''}"></td>${NF.map(([f,,inh])=>{const v=iv_(r.k,f);return `<td class="n"><input class="cost wr" type="number" min="0" data-f="${f}" data-k="${esc(r.k)}" value="${v??''}" placeholder="${f0(inh(r.k))}" style="width:${f==='moq'?90:72}px"></td>`}).join('')}<td><select class="wr" data-f="status" data-k="${esc(r.k)}">${ST3.map(s=>`<option ${s===r.st?'selected':''}>${s}</option>`).join('')}</select>${r.stG&&r.st!=='판매'?' <span class="note">추정</span>':''}</td><td class="n">${f0(r.qty)}</td></tr>`).join('');
+  t.insertAdjacentHTML('beforeend',`<tfoot><tr><td colspan="${7+NF.length}">${rows.length}품목 · 기울어진 브랜드 = 상품명에서 추정 · 흐린 숫자 = 브랜드 · 기본값에서 가져온 값 (넣으면 이 품목만 따로 적용)</td></tr></tfoot>`);
  }
- $('#maT').addEventListener('change',async e=>{const i=e.target.closest('[data-f]');if(!i)return;const k=i.dataset.k,f=i.dataset.f;
-  const it={...(ITEM[k]||{})};if(f==='status')it.statusAt=T;if(!canInv())return; it[f]=['lt','moq','safe'].includes(f)?(i.value===''?null:+i.value):i.value.trim();ITEM[k]=it;recalc();if(f==='brand')i.classList.remove('guess');
+ $('#maT').addEventListener('change',async e=>{const i=e.target.closest('[data-f]');if(!i||!canInv())return;const k=i.dataset.k,f=i.dataset.f;
+  const it={...(ITEM[k]||{})};if(f==='status')it.statusAt=T;
+  if(['lt','moq','safe','cover','unit'].includes(f)){if(i.value===''){it[f]=null}else{const v=+i.value;if(!(v>=0)){i.value='';return}it[f]=f==='unit'?Math.max(1,v):v}}else it[f]=i.value.trim();
+  ITEM[k]=it;if(f==='brand'){i.classList.remove('guess');if(it.brand===EXB)i.closest('tr').classList.add('exb');else i.closest('tr').classList.remove('exb')}recalc();
   if(db)try{await db.collection('item').doc(k).set({...it,at:new Date().toISOString()})}catch(e2){alert('저장하지 못했습니다')}});
- $('#mX').onclick=()=>saveX('품목기준정보.xlsx',{'품목':[['상품코드','품목','이지어드민 공급처','법인','브랜드','브랜드 추정','리드타임','안전재고','MOQ','판매상태','현재고'],...rows.map(r=>[r.k,r.name,r.sup,r.co,r.br,r.guess?'추정':'',r.lt,r.safe,r.moq,r.st,r.qty])]});
+ $('#mX').onclick=()=>saveX('품목기준정보.xlsx',{'품목':[['상품코드','품목','이지어드민 공급처','법인','브랜드','브랜드 추정','리드타임','안전재고','확보일수','최소수량','주문단위','판매상태','현재고'],...rows.map(r=>[r.k,r.name,r.sup,r.co,r.br,r.guess?'추정':'',r.lt,r.safe,r.cover,r.moq,r.unit,r.st,r.qty])]});
  draw();
 }
 
@@ -2208,9 +2525,12 @@ let PLAN=null,UPH='',UPP='';
 function upSet(v){UPH=v;const el=$('#upR');if(el)el.innerHTML=v}
 function upProg(t){UPP=t;const el=$('#upPg');if(el)el.textContent=t}
 document.addEventListener('click',e=>{const b=e.target.closest('#upGo,#upNo');if(!b||b.disabled)return;if(b.id==='upNo'){PLAN=null;upSet('');upProg('')}else commit()});
+function upCheck(){ const L=Object.keys(MV).filter(k=>live(k)&&MV[k].src!=='manual'); const nob=Object.keys(MV).filter(k=>brandOf(k)==='(미지정)'), bad=L.filter(k=>MET[k]&&MET[k].bad), neg=L.filter(k=>MET[k]&&MET[k].qty<0&&MET[k].st!=='drop'); return {nob,bad,neg,n:nob.length+bad.length+neg.length} }
 function vUp(){
- $('#invRoot').innerHTML=head('매일 업로드','이지어드민 재고수불부 엑셀을 그대로 올립니다 · 같은 품목 · 같은 일자는 새 파일 값으로 바뀌고 겹치는 날짜는 한 번만 들어갑니다')+`
+ const chk=upCheck();
+ $('#invRoot').innerHTML=head('매일 업로드','이지어드민 재고수불부 엑셀을 그대로 올립니다 · 같은 품목 · 같은 일자는 새 파일 값으로 바뀝니다')+gapMsg()+`
  <div class="panel"><div class="drop" id="drop" tabindex="0" role="button">여기에 엑셀 파일을 끌어 놓거나 눌러서 선택<br><span class="note">재고수불부_YYYYMMDD_HHMMSS.xlsx · 상품코드, 상품명, 이전재고, 당시재고, 일자, 입고, 출고, 배송, 조정, 반품입고, 반품출고, 공급처</span></div><input type="file" id="upF" accept=".xlsx,.xls" hidden><div id="upR">${UPH}</div><div class="note" id="upPg">${UPP}</div></div>
+ ${T?`<div class="panel"><h3>업로드 뒤 점검 <span class="note">${T} 기준</span></h3>${chk.n?`<ul class="rl">${chk.nob.length?`<li><span class="st s-soon">브랜드 없음</span> <a href="#" data-to="master" data-st="nob">${chk.nob.length}품목</a> · ${chk.nob.slice(0,5).map(k=>esc(MV[k].name)).join(', ')}${chk.nob.length>5?' 외':''}</li>`:''}${chk.bad.length?`<li><span class="st s-urg">수불 안 맞음</span> ${chk.bad.length}품목 (이전재고 + 입고 − 출고 ± 조정 ≠ 당시재고) · ${chk.bad.slice(0,5).map(k=>nmL(k)).join(', ')}</li>`:''}${chk.neg.length?`<li><span class="st s-urg">마이너스 재고</span> <a href="#" data-to="adj">${chk.neg.length}품목</a> · ${chk.neg.slice(0,5).map(k=>nmL(k)).join(', ')}</li>`:''}</ul>`:'<p class="note">브랜드 없는 품목 · 수불 불일치 · 마이너스 재고가 없습니다.</p>'}</div>`:''}
  <div class="panel"><h3>업로드 기록</h3><div class="tbl"><table data-sb="1"><thead><tr><th>올린 시각</th><th>올린 사람</th><th>파일</th><th>기간</th><th class="n">품목</th><th class="n">새 행</th><th class="n">바뀐 행</th><th class="n">중복</th><th class="n">경고</th></tr></thead><tbody>${LOG.map(l=>`<tr><td>${esc((l.at||'').replace('T',' ').slice(0,16))}</td><td>${esc(l.by||'')}</td><td>${esc(l.file)}</td><td>${esc(l.from)} ~ ${esc(l.to)}</td><td class="n">${f0(l.skus)}</td><td class="n">${f0(l.add)}</td><td class="n">${f0(l.chg)}</td><td class="n">${f0(l.same)}</td><td class="n">${l.warn?`<span class="st s-soon">${l.warn}</span>`:'0'}</td></tr>`).join('')||'<tr><td colspan="9">아직 기록이 없습니다.</td></tr>'}</tbody></table></div></div>
  <div class="panel"><h3>처리 기준</h3><ul class="rl"><li>합계 행(일자 없음)은 건너뜁니다. 파일 기간 안에서 사라진 일자는 지웁니다.</li><li>품목의 기초 수량은 처음 나온 일자의 이전재고(1월 1일 기초)이고, 이후 매일 기말이 다음 날 기초로 이월됩니다.</li><li>이전재고 + 입고 − 출고 − 배송 ± 조정 + 반품입고 − 반품출고 = 당시재고가 맞지 않으면 경고합니다.</li></ul></div>`;
  const drop=$('#drop');drop.onclick=()=>$('#upF').click();drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#upF').click()}};
@@ -2244,7 +2564,7 @@ async function commit(){const P=PLAN;if(!P||!canInv())return;PLAN=null;upSet(UPH
  for(const k of keys){try{await db.collection('mv').doc(k).set(P.docs[k])}catch(e){try{await new Promise(r=>setTimeout(r,800));await db.collection('mv').doc(k).set(P.docs[k])}catch(e2){fail.push(k);if(['quota_exceeded','revoked'].includes(e2.code))break}}
   done++;if(done%10===0)upProg(`저장 중 ${done} / ${keys.length}`)}
  try{await db.collection('log').add({at:new Date().toISOString(),by:me?me.nm:'',file:P.file,from:P.min,to:P.max,skus:P.skus,rows:P.cnt,add:P.add,chg:P.chg,same:P.same,del:P.del,warn:P.warn.length,fail:fail.length})}catch(e){}
- upProg('');upSet(UPH+`<div class="msg ${fail.length?'s-urg':'s-ok'}">${fail.length?`${fail.length}품목 저장 실패 — 같은 파일을 다시 올리면 빠진 부분만 반영됩니다.`:`반영 완료 · ${keys.length}품목`}</div>`);
+ upProg('');upSet(UPH+`<div class="msg ${fail.length?'s-urg':'s-ok'}">${fail.length?`${fail.length}품목 저장 실패 — 같은 파일을 다시 올리면 빠진 부분만 반영됩니다.`:`반영 완료 · ${keys.length}품목 · 아래 “업로드 뒤 점검”을 확인하세요`}</div>`);
 }
 
 
@@ -2294,15 +2614,15 @@ function vManual(){
 /* ---------- 재고 조정 (수기) ---------- */
 let adjPre=null;
 function vAdj(){ if(needData())return;
- const keys=Object.keys(MV).sort(), pre=adjPre||{};adjPre=null; const k0=pre.code||'';
+ const keys=Object.keys(MV).filter(live).sort(), pre=adjPre||{};adjPre=null; const k0=pre.code||'';
  const neg=Object.values(MET).filter(m=>m.qty<0&&m.st!=='drop').sort((a,b)=>a.qty-b.qty);
  const L=Object.entries(ADJ).map(([id,a])=>({id,...a,name:MV[a.code]?.name||a.code})).concat(Object.entries(CNT).map(([id,a])=>({id,...a,qty:a.diff,cnt:1,name:MV[a.code]?.name||a.code}))).sort((a,b)=>String(b.d).localeCompare(String(a.d))||String(b.at).localeCompare(String(a.at)));
- $('#invRoot').innerHTML=head('재고 조정 (수기)','마이너스 재고 · 실사 차이를 에이온에서 직접 조정하고, 재고 실사로 소비기한을 한 번에 바꿉니다 · 조정은 해당 일자의 조정 수량에 더해지고 그날 이후 수불 · 금액 · 발주 권고에 반영됩니다 · 이지어드민에도 같은 조정을 하면 두 번 반영되니 한쪽에서만 처리하세요')+`
+ $('#invRoot').innerHTML=head('재고 조정 · 실사','마이너스 재고 · 실사 차이를 조정하고, 실사로 소비기한을 한 번에 바꿉니다 · 사유는 꼭 고릅니다','조정은 해당 일자의 조정 수량에 더해지고 그날 이후 수불 · 금액 · 발주 권고에 반영됩니다. 이지어드민에도 같은 날 조정이 있으면 두 번 반영될 수 있어 등록 전에 알려 드립니다. 사유가 “기타”면 메모를 꼭 넣습니다.')+`
  <div class="grid2"><div class="panel"><h3>조정 등록</h3><form id="ajF" class="pof">
   <label>품목<input id="aK" list="aL" required value="${k0&&MV[k0]?esc(k0+' '+MV[k0].name):''}" style="min-width:240px"><datalist id="aL">${keys.map(k=>`<option value="${esc(k+' '+MV[k].name)}">`).join('')}</datalist></label>
   <label>조정일<input id="aD" type="date" required value="${T}"></label>
   <label>수량 (+ 늘림 / − 줄임)<input id="aQ" type="number" required style="width:120px" value="${k0&&MET[k0]&&MET[k0].qty<0?-MET[k0].qty:''}"></label>
-  <label>사유<select id="aR"><option>마이너스 재고 정리</option><option>실사 차이</option><option>파손 · 폐기</option><option>기타</option></select></label>
+  <label>사유<select id="aR" required><option value="">사유 선택 (필수)</option><option>마이너스 재고 정리</option><option>실사 차이</option><option>파손 · 폐기</option><option>기타</option></select></label>
   <label>메모<input id="aM" style="width:180px"></label><button class="b p">등록</button></form><p class="note" id="aH">${k0&&MET[k0]?`${T} 현재고 ${f0(MET[k0].qty)}개`:''}</p></div>
  <div class="panel"><h3>마이너스 재고 <span class="note">${neg.length}품목 · ${T} 기준</span></h3><div class="tbl" style="max-height:260px;overflow:auto"><table data-sb="1"><thead><tr><th>품목</th><th class="n">현재고</th><th></th></tr></thead><tbody>${neg.map(m=>`<tr><td>${esc(m.k)} ${esc(MV[m.k].name)}</td><td class="n" style="color:var(--red)">${f0(m.qty)}</td><td><button class="b sm" data-zero="${esc(m.k)}">0으로 맞추기</button></td></tr>`).join('')||'<tr><td colspan="3">마이너스 재고가 없습니다.</td></tr>'}</tbody></table></div></div></div>
  <div class="panel"><h3>재고 실사 (수량 · 소비기한 일괄 업데이트)</h3><p class="note">실사한 수량을 소비기한별로 넣으면 ① 장부와의 차이가 그날 조정으로 들어가고 ② 남은 재고의 소비기한이 실사 결과로 바뀝니다. 원가는 선입선출 순서를 그대로 유지합니다.</p>
@@ -2334,49 +2654,13 @@ function vAdj(){ if(needData())return;
  $('#aK').onchange=e=>{const k=e.target.value.split(' ')[0];if(MET[k]){$('#aH').textContent=`${T} 현재고 ${f0(MET[k].qty)}개`;if(MET[k].qty<0)$('#aQ').value=-MET[k].qty}};
  $('#invRoot').querySelectorAll('[data-zero]').forEach(b=>b.onclick=()=>{const k=b.dataset.zero;$('#aK').value=k+' '+MV[k].name;$('#aQ').value=-MET[k].qty;$('#aD').value=T;$('#aR').value='마이너스 재고 정리';$('#aH').textContent=`${T} 현재고 ${f0(MET[k].qty)}개 → 0개`;$('#aQ').focus()});
  $('#ajF').onsubmit=async e=>{e.preventDefault();if(!canInv())return;const k=$('#aK').value.split(' ')[0],q=Math.round(+$('#aQ').value);if(!MV[k]||!q){alert('품목과 0이 아닌 수량을 넣어 주세요');return}
+  const rs=$('#aR').value,dd=$('#aD').value;if(!rs){alert('조정 사유를 골라 주세요');return}if(rs==='기타'&&!$('#aM').value.trim()){alert('사유가 기타면 메모를 넣어 주세요');$('#aM').focus();return}
+  const ez=(MV[k].rows[dd]||[])[3]||0,dup=Object.values(ADJ).filter(a=>a.code===k&&a.d===dd).length;if((ez||dup)&&!confirm(`${dd} 같은 날 ${ez?`이지어드민에도 조정 ${ez>0?'+':''}${f0(ez)}개`:''}${ez&&dup?', ':''}${dup?`에이온 조정 ${dup}건`:''}이 이미 있습니다. 두 번 반영될 수 있습니다. 그래도 등록할까요?`))return;
   const a={code:k,d:$('#aD').value,qty:q,reason:$('#aR').value,memo:$('#aM').value.trim(),by:me?me.nm:'',at:new Date().toISOString()};const id='a'+Date.now().toString(36);ADJ[id]=a;recalc();go('adj');
   if(db)try{await db.collection('adj').doc(id).set(a)}catch(e2){alert('조정을 저장하지 못했습니다')}};
  $('#invRoot').querySelectorAll('button[data-a="adel"]').forEach(b=>b.onclick=async()=>{if(!canInv())return;const id=b.dataset.id,col=b.dataset.c?'count':'adj';if(col==='count')delete CNT[id];else delete ADJ[id];recalc();go('adj');if(db)try{await db.collection(col).doc(id).delete()}catch(e){}});
 }
 
-/* ---------- 브랜드별 실적 ---------- */
-let rF={m:'',co:''};
-function vBrand(){ if(needData())return;
- const ms=[];{let [y,m]=firstDate().slice(0,7).split('-').map(Number);const [ly,lm]=T.slice(0,7).split('-').map(Number);while(y<ly||(y===ly&&m<=lm)){ms.push(`${y}-${String(m).padStart(2,'0')}`);m++;if(m>12){m=1;y++}}}
- if(!rF.m)rF.m=T.slice(0,7);
- const mEnd=mm=>{const [y,m]=mm.split('-').map(Number);return new Date(Date.UTC(y,m,0)).toISOString().slice(0,10)};
- const from=rF.m+'-01', to=rF.m===T.slice(0,7)?T:mEnd(rF.m), prevM=ms[ms.indexOf(rF.m)-1]||'', pFrom=prevM?prevM+'-01':'', pTo=prevM?addS(pFrom,diffS(from,to)):'';
- const keys=Object.keys(MV).filter(k=>!rF.co||coName(MV[k].sup)===rF.co), G={}, TR={};
- for(const k of keys){const b=brandOf(k),g=G[b]=G[b]||{b,n:0,act:0,sq:0,oq:0,sa:0,oa:0,aq:0,aa:0,pq:0,eq:0,ea:0,avg:0,urg:0,unk:0,nob:b==='(미지정)'};
-  const p=period(CALC[k],from,to), m=MET[k]; g.n++; if(m&&m.st!=='drop')g.act++;
-  g.sq+=p.f.sq;g.oq+=p.f.oq;g.sa+=p.f.sa;g.oa+=p.f.oa;g.aq+=p.f.aq;g.aa+=p.f.aa;g.eq+=p.e.q;g.ea+=p.e.a;if(p.u)g.unk++;
-  if(pFrom){const q=period(CALC[k],pFrom,pTo);g.pq+=q.f.sq+q.f.oq}
-  if(m){g.avg+=m.avg;if(['gap','urg'].includes(m.st))g.urg++}
-  const tr=TR[b]=TR[b]||{};for(const x of CALC[k].days){const mm=x.d.slice(0,7);tr[mm]=(tr[mm]||0)+x.sq+x.oq}}
- let rows=Object.values(G).map(g=>({...g,tq:g.sq+g.oq,chg:g.pq?(g.sq+g.oq)/g.pq-1:null,cogs:g.sa+g.oa,days:g.avg>0?Math.max(g.eq,0)/g.avg:null}));
- if(!SORT.br)rows.sort((a,b)=>brIdx(a.b)-brIdx(b.b));
- const S=x=>rows.reduce((s,r)=>s+(r[x]||0),0), nob=rows.find(r=>r.nob);
- $('#invRoot').innerHTML=head('브랜드별 실적',`브랜드별 판매량 · 출고 원가 · 재고를 봅니다 · 판매량 = 배송(판매출고) + 출고(기타출고) · 재고조정은 판매량에서 제외 · 매출액은 판매처 데이터를 받은 뒤 추가 · 전월은 같은 일수로 비교 (${from} ~ ${to}${pFrom?` vs ${pFrom} ~ ${pTo}`:''})`)+`
- ${nob?`<div class="msg s-soon" style="margin:0 0 10px">브랜드 미지정 ${nob.n}품목이 '(미지정)'으로 묶여 있습니다. <a href="#" id="toNob">품목 기준정보에서 브랜드 매칭</a></div>`:''}
- <div class="filters"><select id="rM">${ms.slice().reverse().map(x=>`<option value="${x}" ${x===rF.m?'selected':''}>${x.replace('-','년 ')}월</option>`).join('')}</select><select id="rCo">${opt(coList(),rF.co,'전체 법인')}</select><button class="b" id="rX">엑셀</button></div>
- <div class="kpis"><div class="kpi"><span>판매량 (배송 + 출고)</span><b>${f0(S('tq'))}</b>${S('pq')?`<em class="note" style="color:var(--mut)">전월 같은 기간 ${f0(S('pq'))} · ${((S('tq')/S('pq')-1)*100).toFixed(1)}%</em>`:''}</div><div class="kpi cst"><span>판매출고 원가</span><b>${fM(S('sa'))}<small> 원</small></b></div><div class="kpi cst"><span>기타출고 원가</span><b>${fM(S('oa'))}<small> 원</small></b></div><div class="kpi cst"><span>기말 재고금액</span><b>${fM(S('ea'))}<small> 원</small></b></div></div>
- <div class="tbl tall"><table id="brT"></table></div>
- <h3 style="margin-top:16px">월별 판매량 추이 (배송 + 출고)</h3><div class="tbl tall"><table data-sb="1" id="brM"></table></div>
- <p class="note cst">원가 · 재고금액은 입력된 단가 기준입니다 (원가 미확정 품목이 있으면 노란 표시).</p>`;
- if($('#toNob'))$('#toNob').onclick=e=>{e.preventDefault();mF.st='nob';go('master')};
- $('#rM').onchange=e=>{rF.m=e.target.value;vBrand()};$('#rCo').onchange=e=>{rF.co=e.target.value;vBrand()};
- const t=$('#brT');
- function draw(){
- t.innerHTML=`<thead><tr><th data-k="b">브랜드</th><th class="n" data-k="act">품목</th><th class="n" data-k="sq">판매출고</th><th class="n" data-k="oq">기타출고</th><th class="n" data-k="tq">판매량</th><th class="n" data-k="chg">전월 대비</th><th class="n" data-k="aq">재고조정</th><th class="n cst" data-k="sa">판매출고 원가</th><th class="n cst" data-k="oa">기타출고 원가</th><th class="n cst" data-k="aa">재고조정 금액</th><th class="n" data-k="eq">기말 재고</th><th class="n cst" data-k="ea">기말 재고금액</th><th class="n" data-k="avg">28일 일평균</th><th class="n" data-k="days">재고보유일수</th><th class="n" data-k="urg">즉시 발주</th></tr></thead><tbody></tbody>`;
- sortRows(t,'br',rows,draw);
- t.tBodies[0].innerHTML=rows.map(r=>`<tr class="${r.unk?'miss':''}"><td><b>${esc(r.b)}</b></td><td class="n">${r.act}<span class="note">/${r.n}</span></td><td class="n">${f0(r.sq)}</td><td class="n">${f0(r.oq)}</td><td class="n"><b>${f0(r.tq)}</b></td><td class="n">${r.chg==null?'–':`<span style="color:${r.chg>=0?'var(--grn)':'var(--red)'}">${r.chg>=0?'▲':'▼'} ${Math.abs(r.chg*100).toFixed(1)}%</span>`}</td><td class="n">${f0(r.aq)}</td><td class="n cst">${f0(r.sa)}</td><td class="n cst">${f0(r.oa)}</td><td class="n cst">${f0(r.aa)}</td><td class="n">${f0(r.eq)}</td><td class="n cst">${f0(r.ea)}</td><td class="n">${f0(r.avg)}</td><td class="n">${r.days==null?'–':f0(r.days)+'일'}</td><td class="n">${r.urg?`<span class="st s-urg">${r.urg}</span>`:'0'}</td></tr>`).join('');
- t.insertAdjacentHTML('beforeend',`<tfoot><tr><td>합계 ${rows.length}브랜드</td><td class="n">${S('act')}</td>${['sq','oq','tq'].map(x=>`<td class="n">${f0(S(x))}</td>`).join('')}<td></td><td class="n">${f0(S('aq'))}</td>${['sa','oa','aa','eq','ea'].map(x=>`<td class="n${x==='eq'?'':' cst'}">${f0(S(x))}</td>`).join('')}<td class="n">${f0(S('avg'))}</td><td></td><td class="n">${S('urg')}</td></tr></tfoot>`);
- }
- draw();
- const mx=Math.max(1,...rows.flatMap(r=>ms.map(m=>TR[r.b][m]||0)));
- $('#brM').innerHTML=`<thead><tr><th>브랜드</th>${ms.map(m=>`<th class="n">${+m.slice(5)}월</th>`).join('')}<th class="n">합계</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.b)}</td>${ms.map(m=>{const v=TR[r.b][m]||0;return `<td class="n hm" style="--a:${(v/mx*0.55).toFixed(3)}">${v?f0(v):'–'}</td>`}).join('')}<td class="n"><b>${f0(ms.reduce((s,m)=>s+(TR[r.b][m]||0),0))}</b></td></tr>`).join('')}</tbody><tfoot><tr><td>합계</td>${ms.map(m=>`<td class="n">${f0(rows.reduce((s,r)=>s+(TR[r.b][m]||0),0))}</td>`).join('')}<td class="n">${f0(rows.reduce((s,r)=>s+ms.reduce((a,m)=>a+(TR[r.b][m]||0),0),0))}</td></tr></tfoot>`;
- $('#rX').onclick=()=>saveX(`브랜드별실적_${rF.m}.xlsx`,{'브랜드별':[['브랜드','품목(활성)','판매출고','기타출고','판매량','전월동기 판매량','재고조정','판매출고원가','기타출고원가','재고조정금액','기말재고','기말재고금액','28일 일평균','재고보유일수','즉시발주'],...rows.map(r=>[r.b,r.act,r.sq,r.oq,r.tq,r.pq,r.aq,Math.round(r.sa),Math.round(r.oa),Math.round(r.aa),r.eq,Math.round(r.ea),Math.round(r.avg),r.days==null?'':Math.round(r.days),r.urg])],'월별 판매량':[['브랜드',...ms],...rows.map(r=>[r.b,...ms.map(m=>TR[r.b][m]||0)])]});
-}
 /* =================== 계약관리 =================== */
 const CO_DEF={
  '아연':{full:'주식회사 아연',ceo:'박건우',bizno:'258-81-02853',addr:'서울특별시 은평구 통일로 906 2층 31호(불광동, 해피플러스1)'},
@@ -2598,8 +2882,8 @@ function vCtEdit(kind,edit){
 }
 /* 법인 정보 · 로고 */
 function vCo(){
- const edit=hasR('admin');
- $('#invRoot').innerHTML=head('계약 설정 (법인 · 로고)','계약서 갑란에 들어가는 법인 정보와 PDF 하단 가운데 로고(PNG)를 법인별로 관리합니다 · 로고는 가로 600px 이하로 줄여 저장합니다')+`
+ const edit=hasR('admin','hr');
+ $('#invRoot').innerHTML=head('계약 설정 (법인 · 로고)','계약서 갑란에 들어가는 법인 정보와 PDF 하단 가운데 로고(PNG)를 법인별로 관리합니다 · 관리자와 인사 역할이 고칠 수 있습니다 · 로고는 가로 600px 이하로 줄여 저장합니다')+`
  <div class="tbl"><table data-sb="1"><thead><tr><th>법인</th><th>상호 (계약서 표기)</th><th>대표이사</th><th>사업자등록번호</th><th>주소</th><th>로고</th><th></th></tr></thead><tbody>${CO_LIST.map(k=>{const G=coInfo(k);return `<tr data-co="${k}"><td><b>${k}</b></td><td><input data-c="full" value="${esc(G.full)}" style="width:170px" ${edit?'':'disabled'}></td><td><input data-c="ceo" value="${esc(G.ceo)}" style="width:80px" ${edit?'':'disabled'}></td><td><input data-c="bizno" value="${esc(G.bizno)}" style="width:120px" ${edit?'':'disabled'}></td><td><input data-c="addr" value="${esc(G.addr)}" style="width:320px" placeholder="미입력" class="${G.addr?'':'empty cost'}" ${edit?'':'disabled'}></td><td class="logo-c">${G.logo?`<img src="${G.logo}" alt="${esc(k)} 로고" style="max-height:28px;max-width:120px;vertical-align:middle">`:'<span class="unk">미등록</span>'}</td><td style="white-space:nowrap">${edit?`<label class="b sm" style="cursor:pointer">PNG 올리기<input type="file" accept="image/png,image/jpeg,image/svg+xml" data-logo="${k}" hidden></label> ${G.logo?`<button class="b sm" data-rm="${k}">지우기</button>`:''}`:''}</td></tr>`}).join('')}</tbody></table></div>
  <p class="note">미리 넣어 둔 법인 정보는 사업자등록 자료 기준입니다. 계약서에 쓰기 전에 상호 · 주소를 한 번 확인해 주세요 (라움리테일 · 고객만족 주소 미입력).</p>`;
  const save=async k=>{if(!edit)return;if(db)try{await db.collection('co').doc(k).set(JSON.parse(JSON.stringify(COI[k]||{})))}catch(e){alert('저장하지 못했습니다')}};
@@ -2624,7 +2908,8 @@ function lockDl(){ const x=$('#xlAll'); if(x)x.hidden=!(me&&canDL()); if(!me)ret
  if(!canDL())m.querySelectorAll('#repX,#sX,#eX,#bX,#rX,#mX,#cT,button#ctT').forEach(el=>{if(el.style.display!=='none')el.style.display='none'});
  if(!canPrice())m.querySelectorAll('input.cost[data-f="v"]').forEach(el=>{if(!el.disabled)el.disabled=true}); }
 function lockWrite(){ if(!me||canInv())return; const m=$('#invRoot');
- m.querySelectorAll('input.cost,select[data-f],input[data-cfg],input[data-blt],#poF input,#poF button,#ajF input,#ajF select,#ajF button,#mnF input,#mnF select,#mnF button,.mnrow input,#mnSave,[data-zero],[data-bmv],#ctF input,#ctF button,#ctU,#ctGo,.cntrow input,#cntSave,#cntAdd,.spl,button[data-a],#cU,#dPo').forEach(el=>{if(!el.disabled)el.disabled=true});
+ setTimeout(()=>{if(canPrice())m.querySelectorAll('input.cost[data-f="v"]').forEach(el=>{if(el.disabled)el.disabled=false})});
+ m.querySelectorAll('.wr,input.cost,select[data-f],input[data-cfg],input[data-blt],#poF input,#poF button,#ajF input,#ajF select,#ajF button,#mnF input,#mnF select,#mnF button,.mnrow input,#mnSave,[data-zero],[data-bmv],#ctF input,#ctF button,#ctU,#ctGo,.cntrow input,#cntSave,#cntAdd,.spl,button[data-a],#cU,#dPo').forEach(el=>{if(!el.disabled)el.disabled=true});
  const d=$('#drop'); if(d&&!d.dataset.lk){d.dataset.lk=1;d.onclick=null;d.ondrop=e=>e.preventDefault();d.innerHTML='조회 권한입니다. 업로드는 재고 담당 · 시스템 관리자 역할만 할 수 있습니다.'}
  if(WRITE_VIEWS.includes(cur)&&!m.querySelector('.rolemsg'))m.querySelector('h2')?.insertAdjacentHTML('afterend','<div class="msg rolemsg" style="margin:0 0 10px">조회 권한입니다. 입력 · 수정은 재고 담당 · 시스템 관리자 역할만 할 수 있습니다.</div>');}
 let COLW={};try{COLW=JSON.parse(localStorage.getItem('ayon-colw')||'{}')}catch(e){}
@@ -2651,11 +2936,11 @@ function bindSort(t){if(t.dataset.sb)return;t.dataset.sb=1;const ths=t.querySele
  th.addEventListener('click',go);th.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
 
 /* ---------- 개발기 연결부 (뒤) ---------- */
-const IV={report:vReport,stock:vStock,exp:vExp,book:vBook,day:vDay,up:vUp,cost:vCost,po:vPo,master:vMaster,adj:vAdj,brand:vBrand,manual:vManual,ctl:()=>vCt('labor'),cts:()=>vCt('supply'),co:vCo};
-const REV=Object.fromEntries(Object.entries(DEVK).filter(([a])=>!['day','manual'].includes(a)).map(([a,b])=>[b,a]));
+const IV={report:vReport,stock:vStock,exp:vExp,book:vBook,day:vDay,up:vUp,cost:vCost,po:vPo,master:vMaster,adj:vAdj,brand:vBrand,etc:vEtc,manual:vManual,ctl:()=>vCt('labor'),cts:()=>vCt('supply'),co:vCo};
+const REV=Object.fromEntries(Object.entries(DEVK).filter(([a])=>!['day','manual','cost','brand','etc'].includes(a)).map(([a,b])=>[b,a]));
 function render(){ if(!WRAP||!document.body.contains(WRAP)||!me) return;
   WRAP.classList.toggle('nocost',!canCost()); WRAP.classList.toggle('noprice',!canCost()&&!canPrice());
-  (IV[cur]||vReport)(); lockDl() }
+  vctl(); (IV[cur]||vReport)(); lockDl() }
 db=makeDb(); dl=null; loaded=true;
 db.collection('mv').onSnapshot(s=>{MV={};s.docs.forEach(d=>MV[d.id]=d.data());schedRecalc()});
 db.collection('cost').onSnapshot(s=>{COST={};s.docs.forEach(d=>COST[d.id]=d.data());for(const k in pending)COST[k]=pending[k];schedRecalc()});
@@ -2663,26 +2948,27 @@ db.collection('item').onSnapshot(s=>{ITEM={};s.docs.forEach(d=>ITEM[d.id]=d.data
 db.collection('po').onSnapshot(s=>{PO={};s.docs.forEach(d=>PO[d.id]=d.data());schedRecalc()});
 db.collection('adj').onSnapshot(s=>{ADJ={};s.docs.forEach(d=>ADJ[d.id]=d.data());schedRecalc()});
 db.collection('count').onSnapshot(s=>{CNT={};s.docs.forEach(d=>CNT[d.id]=d.data());schedRecalc()});
-db.doc('cfg/main').onSnapshot(s=>{if(s.exists)CFG={...CFG,...s.data()};schedRecalc()});
+db.doc('cfg/main').onSnapshot(s=>{if(s.exists)CFG=cfgIn(s.data());schedRecalc()});
 db.collection('ct').onSnapshot(s=>{CT={};s.docs.forEach(d=>CT[d.id]=d.data());if(['ctl','cts'].includes(cur)&&!ctEdit)softRender()});
 db.collection('co').onSnapshot(s=>{COI={};s.docs.forEach(d=>COI[d.id]=d.data());if(['ctl','cts','co'].includes(cur))softRender()});
 db.collection('log').orderBy('at','desc').limit(60).onSnapshot(s=>{LOG=s.docs.map(d=>d.data());if(cur==='up')softRender()});
 let OBS=[];
 /* 개발기 화면(VIEWS)에서 부르는 입구 */
-function show(devKey,el){ const k=ITABS[devKey]?(ITAB[devKey]||ITABS[devKey][0][0]):(REV[devKey]||'report');
+function show(devKey,el){ const TB=ITABS[devKey]?ITABS[devKey].filter(([t])=>tabOk(t)):null;
+  const k=TB&&TB.length?(TB.some(x=>x[0]===ITAB[devKey])?ITAB[devKey]:TB[0][0]):(REV[devKey]||'report');
   loadMe();
   if(WRAP&&el.contains(WRAP)&&cur===k){ db.refresh(); recalc(); return }   /* 같은 화면: 다른 사람 변경 반영만 */
-  cur=k;
+  if(cur!==k) closeItem(); cur=k;
   const nm=(MENU.find(x=>x.k===devKey)||{}).n||'';
-  const tb=ITABS[devKey]?`<div class="invtabs" role="tablist">${ITABS[devKey].map(([t,l])=>`<button type="button" role="tab" class="${t===k?'on':''}" aria-selected="${t===k}" data-itab="${t}">${esc(l)}</button>`).join('')}</div>`:'';
-  el.innerHTML=`<div class="invw">${tb}<div class="invbar"><span id="dbst"></span><label id="demoW"${canCost()||canPrice()?'':' hidden'}><input type="checkbox" id="demo"> 예시 값 보기</label><button class="b sm" id="xlAll" hidden title="지금 화면의 표를 모두 엑셀로">이 화면 엑셀</button><span id="crumb" hidden>${esc(nm)}</span></div><div id="invRoot"></div></div>`;
+  const tb=TB&&TB.length>1?`<div class="invtabs" role="tablist">${TB.map(([t,l])=>`<button type="button" role="tab" class="${t===k?'on':''}" aria-selected="${t===k}" data-itab="${t}">${esc(l)}</button>`).join('')}</div>`:'';
+  el.innerHTML=`<div class="invw">${tb}<div class="invbar"><span id="dbst"></span><span id="vctl"></span><button class="b sm" id="xlAll" hidden title="지금 화면의 표를 모두 엑셀로">이 화면 엑셀</button><span id="crumb" hidden>${esc(nm)}</span></div><div id="invRoot"></div></div>`;
   WRAP=el.firstElementChild;
   OBS.forEach(o=>o.disconnect()); const R=$('#invRoot');
   OBS=[lockDl,colResize,lockWrite,()=>document.querySelectorAll('#invRoot table').forEach(bindSort)].map(f=>{const o=new MutationObserver(f);o.observe(R,{childList:true,subtree:true});return o});
   el.querySelectorAll('[data-itab]').forEach(b=>b.onclick=()=>{ ITAB[devKey]=b.dataset.itab; WRAP=null; show(devKey,el) });
-  $('#xlAll').onclick=exportView; $('#demo').checked=DEMO; $('#demo').onchange=e=>{DEMO=e.target.checked;recalc()};
+  $('#xlAll').onclick=exportView;
   db.refresh(); recalc() }
-return {show,DEVK};
+return {show,DEVK,setTab:(k,t)=>{ITAB[k]=t}};
 
 })();
 /* =====================================================================
@@ -2887,33 +3173,39 @@ function bulkPreview(A,done){
    <div class="actions"><button type="button" class="btn" data-x>취소</button><button class="btn pri" ${plan.length?'':'disabled'}>${plan.length}명 반영</button></div>`,(f,d)=>{
     f.onsubmit=ev=>{ ev.preventDefault(); for(const [e,n] of plan) empApply(e,n,false); audit('emp','-','엑셀 일괄 수정',plan.length+'명'); save(); d.remove(); toast(plan.length+'명을 반영했습니다.'); done&&done() } },true) }
 /* =====================================================================
-   메뉴 구성 (v1.4.1)
-   - 조직관리 4 · 재고관리 10 · 계약관리 3 — 묶음 아래 한 단계로만 (상위 · 하위 메뉴 없음)
-   - 비슷한 화면은 한 메뉴의 탭으로: 매일 업로드(이지어드민 | 지앤비 수기), 재고 수불부(전체 | 품목 일별),
-     권한 관리(사용자 | 역할 | 부서 권한), 변경 이력 · 백업(변경 이력 | 백업 받기 | 개발기만: 운영기 가져오기 · 시스템 설정)
+   메뉴 구성 (v1.5.0)
+   - 조직관리 4 · 재고관리 8 · 계약관리 3 — 묶음 아래 한 단계로만
+   - 재고관리는 하루 업무 순서: 오늘 할 일 → 매일 업로드 → 입고 관리(발주 · 입고 | 단가 · 소비기한) → 현재고 · 발주 권고
+     → 소비기한 → 월간 수불 · 실적(재고 수불부 | 브랜드별 실적 | 기타출고) → 재고 조정 · 실사 → 품목 기준정보
+   - 합친 메뉴는 원래 권한 중 하나만 있어도 보이고, 안의 탭은 원래 권한 키(invcost · invbr)로 보임 여부를 정함
+   - 모바일 아래 탭: 할 일 · 재고 · 조직 · 더보기
    - 개발중 메뉴: 개발기에서만 보임 · 운영기에서는 메뉴와 화면 모두 막음
    - 권한 키는 04_inventory_security.sql 의 역할(perm)과 같음 · 처리 종류에 '엑셀' 추가
    ===================================================================== */
 if(!ACTS.includes('엑셀')) ACTS.push('엑셀');
+/* 합친 메뉴 권한: 입고 관리 = 발주(invpo) 또는 입고 단가(invcost), 월간 수불 · 실적 = 수불부 · 브랜드 실적 · 품목 일별 중 하나 */
+const canRaw=can, MERGEP={invpo:['invpo','invcost'],invbook:['invbook','invbr','invday'],invup:['invup','invman']};
+can=function(menu,act='조회'){ const L=MERGEP[menu]; return L?L.some(k=>canRaw(k,act)):canRaw(menu,act) };
 const IS_PROD=ENV==='prod';
 MENU_PERM.data='cfg';
 (function(){
   const old=MENU.slice(), by=k=>old.find(m=>m.k===k);
   const pick=(k,o={})=>{const m=by(k); if(!m) return null; const x={...m,...o}; delete x.p; return x};
+  const PC_ONLY=new Set(['invup','invbook','invadj','invmst','user','data','ctlabor','ctsupply','ctco']);
   const INVK=['invrep','invstk','invbr','invexp','invbook','invup','invcost','invadj','invpo','invmst','ctlabor','ctsupply','ctco'];
   const LIVE=[
     {g:'조직관리'},
-    {k:'orgchart',n:'조직도',tab:'조직'}, {k:'people',n:'직원 명부'}, pick('user',{n:'권한 관리'}), {k:'data',n:'변경 이력 · 백업'},
+    {k:'orgchart',n:'조직도'}, {k:'people',n:'직원 명부',tab:'조직',tabo:3}, pick('user',{n:'권한 관리'}), {k:'data',n:'변경 이력 · 백업'},
     {g:'재고관리'},
-    {k:'invrep',n:'일일 리포트',tab:'재고'}, {k:'invup',n:'매일 업로드'}, {k:'invcost',n:'입고 단가 · 소비기한'},
-    {k:'invstk',n:'현재고 · 발주 권고'}, {k:'invpo',n:'발주 관리'}, {k:'invexp',n:'소비기한 관리'},
-    {k:'invbook',n:'재고 수불부'}, {k:'invbr',n:'브랜드별 실적'}, {k:'invadj',n:'재고 조정 · 실사'}, {k:'invmst',n:'품목 기준정보'},
+    {k:'invrep',n:'오늘 할 일',tab:'할 일',tabo:1}, {k:'invup',n:'매일 업로드'}, {k:'invpo',n:'입고 관리'},
+    {k:'invstk',n:'현재고 · 발주 권고',tab:'재고',tabo:2}, {k:'invexp',n:'소비기한 관리'},
+    {k:'invbook',n:'월간 수불 · 실적'}, {k:'invadj',n:'재고 조정 · 실사'}, {k:'invmst',n:'품목 기준정보'},
     {g:'계약관리'},
-    {k:'ctlabor',n:'노무 계약서',tab:'계약'},{k:'ctsupply',n:'상품공급 계약서'},{k:'ctco',n:'계약 설정 (법인 · 로고)'}
+    {k:'ctlabor',n:'노무 계약서'},{k:'ctsupply',n:'상품공급 계약서'},{k:'ctco',n:'계약 설정 (법인 · 로고)'}
   ].filter(Boolean);
   const used=new Set(LIVE.filter(m=>m.k).map(m=>m.k));
   /* 나머지는 원래 순서대로 '개발중 · 원래 묶음' 아래로 (권한 관리 안의 역할 · 부서 권한, 데이터 관리 안의 변경 이력 · 설정은 탭으로 옮겨 뺌) */
-  const INTAB=new Set(['role','grant','audit','cfg','signup']);
+  const INTAB=new Set(['role','grant','audit','cfg','signup','invcost','invbr','invday','invman']);
   const DEV=[]; let pend={g:'개발중 · 홈',dev:true};
   for(const m of old){
     if(m.g){ pend={g:'개발중 · '+(m.g==='재고'?'재고 원장':m.g),dev:true}; continue }
@@ -2923,13 +3215,15 @@ MENU_PERM.data='cfg';
   MENU.splice(0,MENU.length,...LIVE,...(IS_PROD?[]:DEV));
   if(!IS_PROD&&!lsGet('ayon.fold')) DEV.filter(m=>m.g).forEach(m=>S.fold.add('g:'+m.g));   /* 개발중 묶음은 처음엔 접어 둠 */
   for(const k of INVK) VIEWS[k]=el=>INV.show(k,el);
+  /* v1.4 메뉴 키로 들어오면 합친 메뉴의 해당 탭으로 */
+  const OLDK={invcost:['invpo','cost'],invbr:['invbook','brand'],invday:['invbook','book'],invman:['invup','manual']};
   /* 메뉴에 없는 화면(운영기의 개발중 화면)이나 로그인 직후 '홈'이면 첫 메뉴로 */
   const _rv=renderView;
-  renderView=function(){ const v=S.view, u=S.user;
+  renderView=function(){ const u=S.user; if(OLDK[S.view]){ const [k,t]=OLDK[S.view]; S.view=k; try{INV.setTab(k,t)}catch(e){} } const v=S.view;
     if(u&&!u.ext&&v!=='more'){
       const first=S._landed!==u.id&&v==='home'; S._landed=u.id;
       if(first||!MENU.some(m=>m.k===v)){ const f=visibleMenu().find(x=>x.k&&!x.dev); if(f&&f.k!==v){ S.view=f.k; return renderApp() } } }
-    return _rv() };
+    const r=_rv(); if(document.documentElement.classList.contains('mobile')&&PC_ONLY.has(v)) $('#main')?.insertAdjacentHTML('afterbegin','<div class="msg pconly">큰 표가 있는 메뉴라 PC 화면에 맞춰져 있습니다. 모바일에서는 오늘 할 일 · 현재고 · 소비기한 · 입고 관리 · 조직도 · 직원 명부를 쓰세요.</div>'); return r };
 })();
 
 /* 변경 이력 · 백업 (v1.4.1): 운영기 = 변경 이력 · 백업 받기 / 개발기는 운영기 데이터 가져오기 · 시스템 설정 탭이 더 있음 */
